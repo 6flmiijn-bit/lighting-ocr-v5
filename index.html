@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCR照会 V3.6 試作</title>
+<title>OCR照会 V3.5.5</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -588,7 +588,7 @@ input[type=file]{display:none}
 }
 
 
-/* V3.6 trial: result colors + bigger qty buttons */
+/* V3.5.5 final UI adjustments */
 .result.okResult,
 .v342-result-card.okResult{
   background:#d9fbe3!important;
@@ -601,62 +601,117 @@ input[type=file]{display:none}
   border-color:#b91c1c!important;
   color:#4a0c0c!important;
 }
-.result.waitResult{
+.result.waitResult,
+.v342-result-card.waitResult,
+.result.readingResult{
   background:#f3f4f6!important;
   border-color:#9ca3af!important;
   color:#111827!important;
 }
-.result.readingResult{
-  background:#fff3bf!important;
-  border-color:#ca8a04!important;
-  color:#3f2f00!important;
-}
-.v36-statusText{
-  font-size:20px;
+.v35-statusText{
+  font-size:22px;
   font-weight:1000;
   margin-bottom:6px;
 }
-.v36-plusMsg{
-  display:inline-block;
-  background:#168a2f;
+.v355-folder{
+  border:1px solid #8a5a3f;
+  border-radius:12px;
+  overflow:hidden;
+  margin-top:8px;
+  background:#f0dfcf;
+}
+.v355-folder-title{
+  background:#8a5a3f;
   color:#fff;
-  border-radius:999px;
-  padding:3px 8px;
+  padding:9px 10px;
+  font-weight:900;
+  display:flex;
+  justify-content:space-between;
+  cursor:pointer;
+  font-size:15px;
+}
+.v355-folder-body.closed{display:none}
+.v355-card{
+  background:#fff6ee;
+  color:#111;
+  border-top:1px solid #c49a7b;
+  padding:8px;
+}
+.v355-card-top{
+  display:grid;
+  grid-template-columns:1fr 92px;
+  gap:8px;
+  align-items:start;
+}
+.v355-model{
+  font-size:17px;
   font-weight:1000;
-  margin-left:5px;
+  line-height:1.18;
+  word-break:break-word;
+  overflow-wrap:anywhere;
 }
-.v410-row{
-  grid-template-columns:1fr 52px 52px 152px 70px!important;
-  min-height:54px!important;
+.v355-symbol{
+  font-size:28px;
+  font-weight:1000;
+  line-height:1.05;
+  text-align:right;
+  word-break:break-word;
+  overflow-wrap:anywhere;
 }
-.v410-qtybtns{
-  gap:5px!important;
+.v355-qtyline{
+  margin-top:8px;
+  display:grid;
+  grid-template-columns:72px 1fr 72px 58px 64px;
+  gap:6px;
+  align-items:center;
 }
-.v410-qtybtns .qbtn{
-  font-size:18px!important;
-  padding:13px 0!important;
+.v355-qtyline button{
+  min-height:52px!important;
+  font-size:22px!important;
+  padding:8px 2px!important;
   border-radius:10px!important;
-  min-height:48px!important;
 }
-.v410-qty{
-  font-size:20px!important;
+.v355-qty{
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border:1px solid #8a5a3f;
+  border-radius:10px;
+  color:#5b3423;
+  font-size:24px;
+  font-weight:1000;
+  white-space:nowrap;
 }
-.v410-actions button{
-  font-size:13px!important;
-  padding:12px 2px!important;
-  border-radius:9px!important;
-  min-height:48px!important;
+.v355-lock{
+  background:#fff;
+  color:#111;
+  border:1px solid #8a5a3f;
+}
+.v355-lock.locked{
+  color:#ffd400!important;
+  background:#5b3423!important;
+}
+.v355-delete{
+  background:#9b3f34;
+  color:#fff;
+  border:1px solid #6b241d;
 }
 @media(max-width:430px){
-  .v410-row{grid-template-columns:1fr 46px 48px 142px 64px!important}
-  .v410-qtybtns .qbtn{font-size:17px!important;min-height:48px!important}
+  .v355-card-top{grid-template-columns:1fr 86px}
+  .v355-model{font-size:16px}
+  .v355-symbol{font-size:25px}
+  .v355-qtyline{grid-template-columns:64px 1fr 64px 52px 58px;gap:5px}
+  .v355-qtyline button{font-size:20px!important;min-height:50px!important}
+  .v355-qty{font-size:22px;min-height:50px}
 }
 
 canvas{display:none}
 </style>
 </head>
 <body>
-<header>OCR照会 V3.6 試作<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
+<header>OCR照会 V3.5.5<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
 <div class="wrap">
 <section class="camera"><video id="video" playsinline muted></video><div class="crossH"></div><div class="crossV"></div><div class="guide">型番・照会記号を十字の中心に合わせてください</div></section>
 <section class="result resultAlways waitResult" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:white"><div class="ruleKey">白</div><div class="ruleName">その他</div></div></section>
@@ -674,11 +729,11 @@ canvas{display:none}
 <button id="btnNewDelivery" class="v342-new-folder">＋ 新しい搬入フォルダ</button><div id="checkList"></div>
 <div class="small">チェックリストが0件の場合は保存しません。保存後に削除/残すを選べます。</div>
 <div class="foot"><label for="csvInput" class="fileLabel black">📁 CSV読込</label><button id="btnExport" class="blue">⬇ CSV書き出し</button><input id="csvInput" type="file" accept=".csv,text/csv"></div>
-<div class="small" id="csvInfo">初期データ：33件</div><div class="raw" id="rawBox">読取文字：未読取</div>
+<div class="small" id="csvInfo">初期データ：33件</div><div class="raw" id="rawBox" style="display:none">読取文字：未読取</div>
 <section class="panel"><h3>全型番を再確認</h3><span id="dataCount">33件</span></section>
 <div class="reviewHelp">基本3列＋あとで 開口サイズ / W数 / 電流値 を追加できます。</div><div id="reviewList" class="reviewBox"></div>
 </div>
-<div id="drawer" class="drawer"><div class="inner"><div class="top"><h2>ヘルプ（V3.5.4）</h2><button id="btnClose" class="closeBtn">閉じる</button></div><div class="tabs"><button class="tab active" data-tab="list">ルール一覧</button><button class="tab" data-tab="edit">ルール編集</button><button class="tab" data-tab="how">使い方</button></div><div id="page_list" class="page active"><div class="card"><h3>ルール一覧（20色）</h3><div class="txt">紹介記号・器具種別から分類を自動判定します。</div><div id="ruleList" class="ruleGrid"></div></div><div class="card"><h3>主な判定</h3><table class="tbl"><tr><th>記号</th><th>分類</th></tr><tr><td>E</td><td>非常照明</td></tr><tr><td>Y</td><td>通路誘導灯</td></tr><tr><td>X</td><td>避難口誘導灯</td></tr><tr><td>U</td><td>防湿・防雨</td></tr><tr><td>LS</td><td>誘導標識</td></tr><tr><td>Z</td><td>階段通路誘導灯</td></tr><tr><td>中継</td><td>信号装置・中継器</td></tr></table></div></div><div id="page_edit" class="page"><div class="card"><h3>ルール編集</h3><div class="txt">略称・表示名・色を変更できます。</div><div id="ruleEditList"></div></div><div id="palettePanel" class="palette"><b>色を選択</b><div id="paletteGrid" class="paletteGrid"></div></div></div><div id="page_how" class="page"><div class="card"><h3>使い方</h3><div class="txt">型番読取：器具型番から紹介記号を表示。<br>照会記号読取：E1aなどから器具型番・開口・W数・電流値を表示。</div></div><div class="card"><h3>CSV形式</h3><table class="tbl"><tr><th>列</th><th>内容</th></tr><tr><td>型番</td><td>NNFB84665など</td></tr><tr><td>紹介記号</td><td>E1aなど</td></tr><tr><td>器具種別</td><td>非常照明など</td></tr><tr><td>開口サイズ</td><td>あとで入力</td></tr><tr><td>W数</td><td>あとで入力</td></tr><tr><td>電流値</td><td>あとで入力</td></tr></table></div></div></div></div>
+<div id="drawer" class="drawer"><div class="inner"><div class="top"><h2>ヘルプ（V3.5.4）</h2><button id="btnClose" class="closeBtn">閉じる</button></div><div class="tabs"><button class="tab active" data-tab="list">ルール一覧</button><button class="tab" data-tab="edit">ルール編集</button><button class="tab" data-tab="how">使い方</button></div><div id="page_list" class="page active"><div class="card"><h3>ルール一覧（20色）</h3><div class="txt">照会記号・器具種別から分類を自動判定します。</div><div id="ruleList" class="ruleGrid"></div></div><div class="card"><h3>主な判定</h3><table class="tbl"><tr><th>記号</th><th>分類</th></tr><tr><td>E</td><td>非常照明</td></tr><tr><td>Y</td><td>通路誘導灯</td></tr><tr><td>X</td><td>避難口誘導灯</td></tr><tr><td>U</td><td>防湿・防雨</td></tr><tr><td>LS</td><td>誘導標識</td></tr><tr><td>Z</td><td>階段通路誘導灯</td></tr><tr><td>中継</td><td>信号装置・中継器</td></tr></table></div></div><div id="page_edit" class="page"><div class="card"><h3>ルール編集</h3><div class="txt">略称・表示名・色を変更できます。</div><div id="ruleEditList"></div></div><div id="palettePanel" class="palette"><b>色を選択</b><div id="paletteGrid" class="paletteGrid"></div></div></div><div id="page_how" class="page"><div class="card"><h3>使い方</h3><div class="txt">型番読取：器具型番から照会記号を表示。<br>照会記号読取：E1aなどから器具型番・開口・W数・電流値を表示。</div></div><div class="card"><h3>CSV形式</h3><table class="tbl"><tr><th>列</th><th>内容</th></tr><tr><td>型番</td><td>NNFB84665など</td></tr><tr><td>照会記号</td><td>E1aなど</td></tr><tr><td>器具種別</td><td>非常照明など</td></tr><tr><td>開口サイズ</td><td>あとで入力</td></tr><tr><td>W数</td><td>あとで入力</td></tr><tr><td>電流値</td><td>あとで入力</td></tr></table></div></div></div></div>
 <canvas id="work"></canvas>
 <script>
 const DATA_INIT=[{"model": "NNFB84665", "symbol": "E1a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84695", "symbol": "E1a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87609", "symbol": "E2a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87649", "symbol": "E2a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84005", "symbol": "E3a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84045", "symbol": "E3a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84715", "symbol": "E4a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNLG01509", "symbol": "E5a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84105", "symbol": "E6a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87009", "symbol": "E7a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87049", "symbol": "E7a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87109", "symbol": "E8a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87919", "symbol": "E9a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40356C LE1", "symbol": "X1L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40352C LE1", "symbol": "X2", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40316C LE1", "symbol": "X3L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40312C LE1", "symbol": "X4", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C", "symbol": "X5Lu", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C", "symbol": "X6u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C LE1", "symbol": "X7u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42337C LE1", "symbol": "X8u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW40315 LE1", "symbol": "X9L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42327C LE1", "symbol": "X10u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40356C LE1", "symbol": "Y1L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40366C LE1", "symbol": "Y2L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40352C LE1", "symbol": "Y3", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40362C LE1", "symbol": "Y4", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40312C LE1", "symbol": "Y5", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40322C LE1", "symbol": "Y6", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C LE1", "symbol": "Y7u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42337C LE1", "symbol": "Y8u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA01520J", "symbol": "Y9", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FSK90910K", "symbol": "自己点検リモコン", "type": "", "aperture": "", "watt": "", "currentA": ""}];
@@ -690,12 +745,24 @@ window.addEventListener("DOMContentLoaded",()=>{loadRules();btnFold.onclick=togg
 btnStart.onclick=startAuto;btnAdd.onclick=addCurrent;btnLight.onclick=toggleLight;btnRead.onclick=readOnce;btnStop.onclick=stopAll;btnExport.onclick=exportCsv;csvInput.onchange=loadCsv;btnHelp.onclick=()=>{drawer.style.display="block";renderHelp();showTab("list")};btnClose.onclick=()=>drawer.style.display="none";document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));renderChecklist();renderReviewList();});
 function setStatus(s){status.textContent=s}
 
+function v355BaseSymbol(sym){
+  return String(sym||"").replace(/-重複\d+$/,"");
+}
+function v355MakeUniqueSymbol(model,symbol){
+  let base=v355BaseSymbol(symbol);
+  let same=data.filter(r=>normalize(r.model)===normalize(model));
+  if(same.length<=1)return base;
+  let idx=same.findIndex(r=>r.model===model && r.symbol===symbol);
+  if(idx<0)idx=same.findIndex(r=>normalize(r.model)===normalize(model) && v355BaseSymbol(r.symbol)===base);
+  if(idx<0)idx=0;
+  return base+"-重複"+(idx+1);
+}
 function v36SetResultState(kind){
   result.classList.remove("okResult","ngResult","waitResult","readingResult");
   result.classList.add(kind);
 }
 function v36KeyForItem(model,symbol){
-  return normalize(model)+"|"+normSymbol(symbol);
+  return normalize(model)+"|"+normSymbol(v355BaseSymbol(symbol));
 }
 
 
@@ -870,7 +937,8 @@ function isDuplicateModel(model){let k=normalize(model);return data.filter(r=>no
 function addCurrentCore(silent=false){
 if(!current){if(!silent)alert("先に読取してください");return false}
 ensureDelivery();
-let d=new Date(),date=d.toISOString().slice(0,10).replaceAll("-","/"),time=d.toTimeString().slice(0,5),key=current.missing?current.model:current.symbol;
+let d=new Date(),date=d.toISOString().slice(0,10).replaceAll("-","/"),time=d.toTimeString().slice(0,5);
+let key=current.missing?current.model:current.symbol;
 let itemKey=v36KeyForItem(current.model,key),now=Date.now();
 if(silent && lastQtyAddKey===itemKey && now-lastQtyAddTime<3000){
   setStatus("連続読取防止：3秒以内は数量加算しません");
@@ -887,7 +955,7 @@ if(f&&!f.locked){
 }
 renderChecklist();
 return true}
-function tryAutoRegister(hit,score){if(registerMode!=="auto"||readTarget!=="model")return;if(!hit||score<0.80){setStatus("自動停止：一致率不足");return}/* V3.6: 重複型番も数量加算運用のため停止しない */let key=hit.model+"|"+hit.symbol,now=Date.now();if(lastAutoKey===key&&now-lastAutoTime<2000)return;lastAutoKey=key;lastAutoTime=now;if(addCurrentCore(true))setStatus("自動登録完了："+hit.symbol)}
+function tryAutoRegister(hit,score){if(registerMode!=="auto"||readTarget!=="model")return;if(!hit||score<0.80){setStatus("自動停止：一致率不足");return}/* V3.5.5: 重複型番も照会記号で区別して登録 */let key=hit.model+"|"+hit.symbol,now=Date.now();if(lastAutoKey===key&&now-lastAutoTime<2000)return;lastAutoKey=key;lastAutoTime=now;if(addCurrentCore(true))setStatus("自動登録完了："+hit.symbol)}
 async function ensureWorker(){if(worker)return worker;setStatus("OCR準備中...");worker=await Tesseract.createWorker("eng",1);await worker.setParameters({tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ",tessedit_pageseg_mode:"6"});setStatus("OCR準備完了");return worker}
 async function startAuto(){try{isStopped=false;await startCamera();if(timer)clearInterval(timer);timer=setInterval(readOnce,1200);await readOnce()}catch(e){setStatus("カメラエラー："+e.message);alert("カメラ起動失敗："+e.message)}}
 async function startCamera(){if(stream)return;stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});video.srcObject=stream;await video.play();await ensureWorker();setStatus("自動読取中")}
@@ -906,21 +974,23 @@ c.height=Math.max(140,Math.floor(sh*scale));
 let ctx=c.getContext("2d",{willReadFrequently:true});
 ctx.drawImage(video,sx,sy,sw,sh,0,0,c.width,c.height);
 return c}
-async function readOnce(){if(isStopped)return;if(!stream)return alert("先にカメラ起動してください");if(busy)return;busy=true;v36SetResultState("readingResult");setStatus("読取中...");try{let c=crop();if(!c){setStatus("カメラ準備中");return}let w=await ensureWorker(),r=await w.recognize(c);if(isStopped)return;let text=r.data.text||"";rawBox.textContent="読取文字：\\n"+text;let m=readTarget==="symbol"?matchSymbol(text):matchModel(text);if(m.hit){if(readTarget==="symbol")showSymbolHit(m.hit,m.score,m.cand);else{showHit(m.hit,m.score,m.cand);tryAutoRegister(m.hit,m.score)}}else showMissing(m.cand,text)}catch(e){setStatus("読取エラー："+e.message)}finally{busy=false}}
+async function readOnce(){if(isStopped)return;if(!stream)return alert("先にカメラ起動してください");if(busy)return;busy=true;v36SetResultState("waitResult");setStatus("読取中...");try{let c=crop();if(!c){setStatus("カメラ準備中");return}let w=await ensureWorker(),r=await w.recognize(c);if(isStopped)return;let text=r.data.text||"";rawBox.textContent="読取文字：\\n"+text;let m=readTarget==="symbol"?matchSymbol(text):matchModel(text);if(m.hit){if(readTarget==="symbol")showSymbolHit(m.hit,m.score,m.cand);else{showHit(m.hit,m.score,m.cand);tryAutoRegister(m.hit,m.score)}}else showMissing(m.cand,text)}catch(e){setStatus("読取エラー："+e.message)}finally{busy=false}}
 function showHit(hit,score,read){
+let displaySymbol=v355MakeUniqueSymbol(hit.model,hit.symbol);
 let cat=categoryFor(hit.symbol,hit.type);
-current={model:hit.model,symbol:hit.symbol,type:hit.type,missing:false};
+current={model:hit.model,symbol:displaySymbol,type:hit.type,missing:false};
 result.style.borderColor=cat.color;
 v36SetResultState("okResult");
-result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card okResult"><div class="v36-statusText">✅ 照合一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol" style="color:${cat.color}">${esc(hit.symbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.model)} / ${isDuplicateModel(hit.model)?"⚠ 重複型番：手動確認 / ":""}<span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div></div></div><div class="ruleBox" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
-setStatus(hit.model+" → "+hit.symbol)}
+result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card okResult"><div class="v35-statusText">✅ 照合一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol" style="color:${cat.color}">${esc(displaySymbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.model)} / <span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div></div></div><div class="ruleBox" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
+setStatus(hit.model+" → "+displaySymbol)}
 function showSymbolHit(hit,score,read){
+let displaySymbol=v355MakeUniqueSymbol(hit.model,hit.symbol);
 let cat=categoryFor(hit.symbol,hit.type);
-current={model:hit.model,symbol:hit.symbol,type:hit.type,missing:false};
+current={model:hit.model,symbol:displaySymbol,type:hit.type,missing:false};
 result.style.borderColor=cat.color;
 v36SetResultState("okResult");
-result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card okResult"><div class="v36-statusText">✅ 照会記号一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol" style="color:${cat.color}">${esc(hit.symbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.symbol)} / <span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div><div class="specBox"><div class="spec"><small>開口</small>${esc(hit.aperture||"未入力")}</div><div class="spec"><small>W数</small>${esc(hit.watt||"未入力")}</div><div class="spec"><small>電流</small>${esc(hit.currentA||"未入力")}</div><div class="spec"><small>型番</small>${esc(hit.model||"")}</div></div></div></div><div class="ruleBox" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
-setStatus("照会一致："+hit.symbol)}
+result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card okResult"><div class="v35-statusText">✅ 照会記号一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol" style="color:${cat.color}">${esc(displaySymbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.symbol)} / <span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div><div class="specBox"><div class="spec"><small>開口</small>${esc(hit.aperture||"未入力")}</div><div class="spec"><small>W数</small>${esc(hit.watt||"未入力")}</div><div class="spec"><small>電流</small>${esc(hit.currentA||"未入力")}</div><div class="spec"><small>型番</small>${esc(hit.model||"")}</div></div></div></div><div class="ruleBox" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
+setStatus("照会一致："+displaySymbol)}
 function showMissing(cand,raw){
 let shown=(cand&&cand!=="未読取")?String(cand).slice(0,24):safeOcrText(raw);
 current={model:shown,symbol:"未登録",type:"",missing:true};
@@ -944,11 +1014,11 @@ if(typeof deliveries!=="undefined"&&deliveries.length){
     let total=arr.reduce((s,x)=>s+x.qty,0);
     if(deliveryOpen[del.id]===undefined)deliveryOpen[del.id]=true;
     let open=deliveryOpen[del.id]!==false;
-    h+=`<div class="v410-folder"><div class="v410-folder-title" data-delivery="${del.id}"><span>${open?"▼":"▶"} ${esc(del.label)}（${arr.length}件）</span><span>合計:${total}</span></div><div class="v410-folder-body ${open?"":"closed"}">`;
+    h+=`<div class="v355-folder"><div class="v355-folder-title" data-delivery="${del.id}"><span>${open?"▼":"▶"} ${esc(del.label)}（${arr.length}件）</span><span>合計:${total}</span></div><div class="v355-folder-body ${open?"":"closed"}">`;
     arr.forEach(x=>{
-      let c=categoryFor(x.symbol,x.type);
+      let c=categoryFor(v355BaseSymbol(x.symbol),x.type);
       let idx=checklist.indexOf(x);
-      h+=`<div class="v410-row"><div class="v410-model">${esc(x.model)}</div><div class="v410-symbol" style="color:${c.color}">${esc(x.symbol)}</div><div class="v410-qty">${x.qty}台</div><div class="v410-qtybtns"><button class="qbtn minus" data-i="${idx}" data-d="-10">-10</button><button class="qbtn minus" data-i="${idx}" data-d="-1">-1</button><button class="qbtn plus" data-i="${idx}" data-d="1">+1</button><button class="qbtn plus" data-i="${idx}" data-d="10">+10</button></div><div class="v410-actions"><button class="v410-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v410-delete" data-del="${idx}">削除</button></div></div>`;
+      h+=`<div class="v355-card"><div class="v355-card-top"><div class="v355-model">${esc(x.model)}</div><div class="v355-symbol" style="color:${c.color}">${esc(x.symbol)}</div></div><div class="v355-qtyline"><button class="qbtn minus" data-i="${idx}" data-d="-1">－</button><div class="v355-qty">${x.qty}台</div><button class="qbtn plus" data-i="${idx}" data-d="1">＋</button><button class="v355-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v355-delete" data-del="${idx}">削除</button></div></div>`;
     });
     h+=`</div></div>`;
   });
@@ -959,7 +1029,8 @@ checkList.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{let i=+b.datase
 checkList.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{let i=+b.dataset.l;checklist[i].locked=!checklist[i].locked;renderChecklist()});
 checkList.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>(typeof v410DeleteItem==='function'?v410DeleteItem:deleteChecklistItem)(+b.dataset.del));
 }
-function renderReviewList(){dataCount.textContent=data.length+"件";let counts={};data.forEach(r=>{let k=normalize(r.model);counts[k]=(counts[k]||0)+1});reviewList.innerHTML='<div class="reviewHead"><div>型番</div><div>紹介記号</div><div>器具種別</div></div>'+data.map(r=>{let c=categoryFor(r.symbol,r.type),dup=counts[normalize(r.model)]>1;return `<div class="reviewRow ${dup?"dup":""}"><div class="reviewModel">${esc(r.model)}${dup?' <span class="dupMark">重複</span>':""}</div><div class="reviewSym" style="color:${c.color}">${esc(r.symbol)}</div><div class="reviewType">${esc(r.type||"")}</div></div>`}).join("")}
+
+function renderReviewList(){dataCount.textContent=data.length+"件";let counts={};data.forEach(r=>{let k=normalize(r.model);counts[k]=(counts[k]||0)+1});reviewList.innerHTML='<div class="reviewHead"><div>型番</div><div>照会記号</div><div>器具種別</div></div>'+data.map(r=>{let c=categoryFor(r.symbol,r.type),dup=counts[normalize(r.model)]>1;return `<div class="reviewRow ${dup?"dup":""}"><div class="reviewModel">${esc(r.model)}${dup?' <span class="dupMark">重複</span>':""}</div><div class="reviewSym" style="color:${c.color}">${esc(r.symbol)}</div><div class="reviewType">${esc(r.type||"")}</div></div>`}).join("")}
 function exportCsv(){
 if(!checklist.length){
   checklist=[];
@@ -971,7 +1042,7 @@ if(!checklist.length){
   alert("0件のためチェックリストを削除しました");
   return;
 }
-let lines=["搬入フォルダ,日付,時刻,型番,紹介記号,数量,固定"];
+let lines=["搬入フォルダ,日付,時刻,型番,照会記号,数量,固定"];
 checklist.forEach(x=>{
   let del=(typeof deliveries!=="undefined"&&deliveries.find)?deliveries.find(d=>d.id===x.deliveryId):null;
   lines.push([del?del.label:"",x.date,x.time,x.model,x.symbol,x.qty,x.locked?"固定":""].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(","))
@@ -996,8 +1067,8 @@ setTimeout(()=>{
   }
 },300);
 }
-function loadCsv(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{let rows=parseCsv(r.result);if(rows.length){data=rows;csvInfo.textContent="読込済み："+f.name+" / "+rows.length+"件";renderReviewList();alert(rows.length+"件読み込みました");setStatus("CSV読込："+rows.length+"件")}else alert("CSV読込失敗：型番 と 紹介記号/照会記号 の列が必要です")};r.readAsText(f,"utf-8")}
-function parseCsv(t){let lines=t.replace(/\\r/g,"").split("\\n").filter(x=>x.trim());if(lines.length<2)return[];let head=splitCsv(lines[0]).map(x=>x.trim().replace(/^\\ufeff/,""));return lines.slice(1).map(line=>{let cols=splitCsv(line),row={};head.forEach((k,i)=>row[k]=cols[i]||"");let model=row["型番"]||row["器具型番"]||row["model"]||"",symbol=row["紹介記号"]||row["照会記号"]||row["記号"]||"",type=row["器具種別"]||row["種別"]||row["type"]||"";return{model:String(model).trim(),symbol:String(symbol).trim(),type:String(type).trim(),aperture:String(row["開口サイズ"]||row["開口"]||"").trim(),watt:String(row["W数"]||row["消費電力"]||row["W"]||"").trim(),currentA:String(row["電流値"]||row["電流"]||row["A"]||"").trim()}}).filter(r=>r.model&&r.symbol)}
+function loadCsv(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{let rows=parseCsv(r.result);if(rows.length){data=rows;csvInfo.textContent="読込済み："+f.name+" / "+rows.length+"件";renderReviewList();alert(rows.length+"件読み込みました");setStatus("CSV読込："+rows.length+"件")}else alert("CSV読込失敗：型番 と 照会記号/照会記号 の列が必要です")};r.readAsText(f,"utf-8")}
+function parseCsv(t){let lines=t.replace(/\\r/g,"").split("\\n").filter(x=>x.trim());if(lines.length<2)return[];let head=splitCsv(lines[0]).map(x=>x.trim().replace(/^\\ufeff/,""));return lines.slice(1).map(line=>{let cols=splitCsv(line),row={};head.forEach((k,i)=>row[k]=cols[i]||"");let model=row["型番"]||row["器具型番"]||row["model"]||"",symbol=row["照会記号"]||row["照会記号"]||row["記号"]||"",type=row["器具種別"]||row["種別"]||row["type"]||"";return{model:String(model).trim(),symbol:String(symbol).trim(),type:String(type).trim(),aperture:String(row["開口サイズ"]||row["開口"]||"").trim(),watt:String(row["W数"]||row["消費電力"]||row["W"]||"").trim(),currentA:String(row["電流値"]||row["電流"]||row["A"]||"").trim()}}).filter(r=>r.model&&r.symbol)}
 function splitCsv(line){let out=[],cur="",q=false;for(let i=0;i<line.length;i++){let ch=line[i],nx=line[i+1];if(ch=='"'&&q&&nx=='"'){cur+='"';i++}else if(ch=='"')q=!q;else if(ch==","&&!q){out.push(cur);cur=""}else cur+=ch}out.push(cur);return out}
 </script>
 </body>
