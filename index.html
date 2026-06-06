@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCR照会 V3.5.2</title>
+<title>OCR照会 V3.5.3</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -587,11 +587,19 @@ input[type=file]{display:none}
   margin-left:4px;
 }
 
+
+/* V3.5.3 broader model matching */
+.v353-note{
+  font-size:12px;
+  color:#3a2a20;
+  margin:4px 2px;
+}
+
 canvas{display:none}
 </style>
 </head>
 <body>
-<header>OCR照会 V3.5.2<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
+<header>OCR照会 V3.5.3<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
 <div class="wrap">
 <section class="camera"><video id="video" playsinline muted></video><div class="crossH"></div><div class="crossV"></div><div class="guide">型番・照会記号を十字の中心に合わせてください</div></section>
 <section class="result resultAlways" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:white"><div class="ruleKey">白</div><div class="ruleName">その他</div></div></section>
@@ -628,25 +636,63 @@ function setStatus(s){status.textContent=s}
 function v35FixModel(s){
   let raw=String(s||"").toUpperCase();
 
-  raw=raw.replace(/[Ｏ]/g,"O").replace(/[０]/g,"0").replace(/[１]/g,"1").replace(/[５]/g,"5");
+  // 全角→半角
+  raw=raw.replace(/[０]/g,"0").replace(/[１]/g,"1").replace(/[２]/g,"2").replace(/[３]/g,"3").replace(/[４]/g,"4").replace(/[５]/g,"5").replace(/[６]/g,"6").replace(/[７]/g,"7").replace(/[８]/g,"8").replace(/[９]/g,"9");
+  raw=raw.replace(/[Ａ]/g,"A").replace(/[Ｂ]/g,"B").replace(/[Ｃ]/g,"C").replace(/[Ｄ]/g,"D").replace(/[Ｅ]/g,"E").replace(/[Ｆ]/g,"F").replace(/[Ｏ]/g,"O");
 
+  // 区切りを除いたキー
   let compact=raw.replace(/[^A-Z0-9]/g,"");
+
+  // LE1系の誤読
   compact=compact.replace(/LEI/g,"LE1").replace(/LFI/g,"LE1").replace(/1E1/g,"LE1").replace(/IE1/g,"LE1");
 
+  // FAの数字部だけ O/I/S/B を補正
   compact=compact.replace(/FA([0-9OISB]{4,8})/g,function(m,n){
     let d=n.replace(/O/g,"0").replace(/I/g,"1").replace(/S/g,"5").replace(/B/g,"8");
     return "FA"+d;
   });
 
+  // FA40356CLE1 / FA40356C1E1 → FA40356C LE1
   let fa=compact.match(/FA[0-9]{5,6}C(LE1|1E1|LEI|IE1)/);
   if(fa){
     return compact.replace(/(FA[0-9]{5,6}C)(LE1|1E1|LEI|IE1).*/,"$1 LE1");
   }
 
+  // その他はCSV型番に近づけるため、余計な記号だけ除去
   return raw.replace(/[　\s_.,:;|\/\\()[\]{}]+/g,"").replace(/[^A-Z0-9\-]/g,"").trim();
 }
 function v35Key(s){
   return v35FixModel(s).replace(/[^A-Z0-9]/g,"").toUpperCase();
+}
+function v353CleanKey(s){
+  return String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+}
+function v353LikelyModelFromRaw(text){
+  let raw=String(text||"").toUpperCase();
+  raw=raw.replace(/[０]/g,"0").replace(/[１]/g,"1").replace(/[５]/g,"5").replace(/[Ｏ]/g,"O");
+  let compact=raw.replace(/[^A-Z0-9]/g,"");
+  compact=compact.replace(/LEI/g,"LE1").replace(/1E1/g,"LE1").replace(/IE1/g,"LE1");
+
+  let patterns=[
+    /NNFB[0-9]{5}[A-Z0-9]*/g,
+    /NNF[0-9]{5}[A-Z0-9]*/g,
+    /NNLG[0-9]{5}[A-Z0-9]*/g,
+    /FA[0-9OISB]{5,6}C?(LE1)?/g,
+    /FW[0-9]{5}[A-Z0-9]*(LE1)?/g,
+    /FK[0-9]{5}[A-Z0-9]*/g,
+    /FSK[0-9]{5}[A-Z0-9]*/g,
+    /LGB[A-Z0-9]{4,18}/g,
+    /XND[A-Z0-9]{4,18}/g,
+    /NW[A-Z0-9]{4,18}/g,
+    /NDN[A-Z0-9]{4,18}/g
+  ];
+
+  let out=[];
+  patterns.forEach(p=>{
+    let m=compact.match(p);
+    if(m)out.push(...m);
+  });
+  return [...new Set(out.map(v35FixModel))];
 }
 
 function ensureDelivery(){
@@ -712,55 +758,66 @@ function extractCandidates(text){
   let fixed=v35FixModel(text);
   let j=normalize(fixed),a=[];
 
-  if(fixed.match(/FA[0-9]{5,6}C\s?LE1/))a.push(fixed);
+  a.push(...v353LikelyModelFromRaw(text));
 
-  let compact=v35Key(text);
-  let fa=compact.match(/FA[0-9]{5,6}CLE1/g);
-  if(fa)a.push(...fa.map(x=>x.replace(/(FA[0-9]{5,6}C)LE1/,"$1 LE1")));
+  // CSVに登録されている型番そのものがOCR結果に含まれる場合
+  let rawKey=v353CleanKey(text);
+  data.forEach(r=>{
+    let k=v353CleanKey(r.model);
+    if(k && (rawKey.includes(k)||v35Key(text).includes(v35Key(r.model)))) a.push(r.model);
+  });
 
-  [/NNFB\\d{5}[A-Z]*/g,/NNF\\d{5}[A-Z]*/g,/NNLG\\d{5}[A-Z]*/g,/FSK\\d{5}[A-Z]*/g,/FA[A-Z0-9\\-]{5,18}/g,/FW[A-Z0-9\\-]{5,18}/g,/FK[A-Z0-9\\-]{5,18}/g].forEach(p=>{
+  [/NNFB\\d{5}[A-Z0-9]*/g,/NNF\\d{5}[A-Z0-9]*/g,/NNLG\\d{5}[A-Z0-9]*/g,/FSK\\d{5}[A-Z0-9]*/g,/FA[A-Z0-9\\-]{5,20}/g,/FW[A-Z0-9\\-]{5,20}/g,/FK[A-Z0-9\\-]{5,20}/g,/LGB[A-Z0-9\\-]{4,20}/g,/XND[A-Z0-9\\-]{4,20}/g,/NW[A-Z0-9\\-]{4,20}/g,/NDN[A-Z0-9\\-]{4,20}/g].forEach(p=>{
     let m=j.match(p);
-    if(m)a.push(...m)
+    if(m)a.push(...m);
   });
 
   a.push(...(j.match(/[A-Z]{2,}[A-Z0-9\\-]{3,20}/g)||[]).filter(looksLikeModel));
-  return[...new Set(a.map(v35FixModel))]
+
+  return[...new Set(a.map(v35FixModel).filter(Boolean))]
 }
 function extractSymbolCandidates(text){let j=normSymbol(text),a=[];[/LS\\d{0,3}[A-Z]*/g,/[EYXZU]\\d{0,3}[A-Z]*/g,/[A-Z]\\d+[A-Z]*/g].forEach(p=>{let m=j.match(p);if(m)a.push(...m)});a.push(...(j.match(/[A-Z]{1,3}\\d{0,3}[A-Z]*/g)||[]).filter(x=>x.length>=1&&x.length<=8));return[...new Set(a)]}
 function safeOcrText(raw){let c=readTarget==="symbol"?extractSymbolCandidates(raw):extractCandidates(raw);if(c.length)return c[0];return String(raw||"").split(/\\n/).map(x=>x.trim()).filter(Boolean).sort((a,b)=>b.length-a.length)[0]?.slice(0,32)||"読取文字なし"}
 function sim(a,b){a=normalize(a);b=normalize(b);let m=a.length,l=b.length;if(!m||!l)return 0;let d=Array.from({length:m+1},()=>Array(l+1).fill(0));for(let i=0;i<=m;i++)d[i][0]=i;for(let j=0;j<=l;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=l;j++){let c=a[i-1]===b[j-1]?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c)}return 1-d[m][l]/Math.max(m,l)}
 function matchModel(text){
   let c=extractCandidates(text);
-  let j=normalize(text);
-  let jk=v35Key(text);
+  let rawKey=v35Key(text);
 
+  // 1) CSV型番がOCR文字にそのまま含まれる場合を最優先
   for(const r of data){
-    let m=normalize(r.model);
-    let mk=v35Key(r.model);
-    if(j.includes(m)||m.includes(j)||jk.includes(mk)||mk.includes(jk))return{hit:r,cand:r.model,score:1}
-  }
-
-  let best={hit:null,cand:c[0]||"",score:0};
-
-  for(const r of data){
-    let m=normalize(r.model);
-    let mk=v35Key(r.model);
-    for(const x of c){
-      let s1=sim(normalize(x),m);
-      let s2=sim(v35Key(x),mk);
-      let s=Math.max(s1,s2);
-      if(s>best.score)best={hit:r,cand:x,score:s}
+    let mKey=v35Key(r.model);
+    let nKey=normalize(r.model);
+    let rawNorm=normalize(text);
+    if(rawKey.includes(mKey)||mKey.includes(rawKey)||rawNorm.includes(nKey)){
+      return{hit:r,cand:r.model,score:1}
     }
   }
 
-  if(best.score>=0.66)return best;
+  // 2) 候補とCSV型番を比較
+  let best={hit:null,cand:c[0]||"",score:0};
+
+  for(const r of data){
+    let m1=normalize(r.model);
+    let m2=v35Key(r.model);
+    for(const x of c){
+      let s1=sim(normalize(x),m1);
+      let s2=sim(v35Key(x),m2);
+      let s=Math.max(s1,s2);
+      if(s>best.score)best={hit:r,cand:x,score:s};
+    }
+    // raw全体とも比較
+    let s3=sim(rawKey,m2);
+    if(s3>best.score)best={hit:r,cand:r.model,score:s3};
+  }
+
+  if(best.score>=0.60)return best;
   if(c.length)return{hit:null,cand:c[0],score:best.score};
   return{hit:null,cand:"未読取",score:0}
 }
 function matchSymbol(text){let cs=extractSymbolCandidates(text);for(const c of cs){let nc=normSymbol(c);let hit=data.find(r=>normSymbol(r.symbol)===nc);if(hit)return{hit,cand:c,score:1}}for(const c of cs){let nc=normSymbol(c);let hit=data.find(r=>normSymbol(r.symbol).startsWith(nc)||nc.startsWith(normSymbol(r.symbol)));if(hit)return{hit,cand:c,score:.86}}return{hit:null,cand:cs[0]||safeOcrText(text),score:0}}
 function isDuplicateModel(model){let k=normalize(model);return data.filter(r=>normalize(r.model)===k).length>1}
 function addCurrentCore(silent=false){if(!current){if(!silent)alert("先に読取してください");return false}ensureDelivery();let d=new Date(),date=d.toISOString().slice(0,10).replaceAll("-","/"),time=d.toTimeString().slice(0,5),key=current.missing?current.model:current.symbol;let f=checklist.find(x=>x.deliveryId===activeDeliveryId&&x.symbol===key&&x.model===current.model);if(f&&!f.locked)f.qty+=1;else checklist.unshift({deliveryId:activeDeliveryId,date,time,symbol:key,model:current.model,type:current.type,qty:1,locked:false,missing:current.missing});renderChecklist();return true}
-function tryAutoRegister(hit,score){if(registerMode!=="auto"||readTarget!=="model")return;if(!hit||score<0.80){setStatus("自動停止：一致率不足");return}if(isDuplicateModel(hit.model)){setStatus("自動停止：重複型番のため手動確認");return}let key=hit.model+"|"+hit.symbol,now=Date.now();if(lastAutoKey===key&&now-lastAutoTime<2000)return;lastAutoKey=key;lastAutoTime=now;if(addCurrentCore(true))setStatus("自動登録完了："+hit.symbol)}
+function tryAutoRegister(hit,score){if(registerMode!=="auto"||readTarget!=="model")return;if(!hit||score<0.60){setStatus("自動停止：一致率不足");return}if(isDuplicateModel(hit.model)){setStatus("自動停止：重複型番のため手動確認");return}let key=hit.model+"|"+hit.symbol,now=Date.now();if(lastAutoKey===key&&now-lastAutoTime<2000)return;lastAutoKey=key;lastAutoTime=now;if(addCurrentCore(true))setStatus("自動登録完了："+hit.symbol)}
 async function ensureWorker(){if(worker)return worker;setStatus("OCR準備中...");worker=await Tesseract.createWorker("eng",1);await worker.setParameters({tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ",tessedit_pageseg_mode:"6"});setStatus("OCR準備完了");return worker}
 async function startAuto(){try{isStopped=false;await startCamera();if(timer)clearInterval(timer);timer=setInterval(readOnce,1200);await readOnce()}catch(e){setStatus("カメラエラー："+e.message);alert("カメラ起動失敗："+e.message)}}
 async function startCamera(){if(stream)return;stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});video.srcObject=stream;await video.play();await ensureWorker();setStatus("自動読取中")}
