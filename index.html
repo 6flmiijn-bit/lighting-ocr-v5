@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>OCR照会 V3.5 安定試作2</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#d7b18e;color:#24170f;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{height:48px;background:#8a5a3f;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;position:static;top:0;z-index:5}
+.helpBtn{position:absolute;right:8px;top:7px;background:#5b3423;color:#fff;border:1px solid #2f1b12;border-radius:10px;padding:7px 10px;font-size:13px}
+.wrap{max-width:760px;margin:auto;padding:10px}
+.camera{position:relative;border:2px solid #6b8f5a;border-radius:16px;overflow:hidden;background:#2a201a;margin-bottom:10px}
+video{display:block;width:100%;height:34vh;object-fit:cover;background:#000}
+.crossH{position:absolute;left:0;right:0;top:50%;height:1px;background:#7fff90;box-shadow:0 0 8px #7fff90}
+.crossV{position:absolute;top:0;bottom:0;left:50%;width:1px;background:#7fff90;box-shadow:0 0 8px #7fff90}
+.guide{position:absolute;left:10%;right:10%;bottom:14px;background:rgba(60,38,26,.78);color:#fff;border-radius:999px;text-align:center;padding:7px;font-weight:800}
+.readmode,.regmode{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#f0dfcf;border:1px solid #8a5a3f;border-radius:12px;padding:8px;margin:8px 0}
+.modeBtn{background:#d0a384;color:#24170f;border:1px solid #8a5a3f;border-radius:10px;padding:12px 6px;font-size:16px;font-weight:900}
+.modeBtn.active{background:#8a5a3f;color:#fff;border-color:#5b3423}
+.result{display:grid;grid-template-columns:1fr 108px;gap:8px;background:#c99b78;border:2px solid #8a5a3f;border-radius:16px;padding:14px;margin-bottom:10px}
+.state{color:#155724;font-weight:900;font-size:18px}
+.readModel{background:#fff;color:#111;border:2px solid #8a5a3f;border-radius:12px;padding:8px 10px;display:inline-block;min-width:70%;font-size:26px;font-weight:1000;word-break:break-all;margin:6px 0}
+.symbol{font-size:46px;font-weight:1000;line-height:1;word-break:break-all}
+.meta{font-size:15px;line-height:1.5;font-weight:800;color:#24170f}
+.ruleBox{border:2px solid currentColor;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:900}
+.ruleKey{font-size:26px}.ruleName{font-size:13px;padding:0 4px}
+.specBox{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.spec{background:#fff;border:1px solid #8a5a3f;border-radius:8px;padding:6px;color:#111;font-weight:900}
+.spec small{display:block;color:#6d432f;font-size:12px}
+.grid3{display:grid;grid-template-columns:1fr 1.6fr .8fr;gap:8px;margin:8px 0}
+.grid2,.foot{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+button,label.fileLabel{border:0;border-radius:12px;padding:14px 8px;color:#fff;font-size:17px;font-weight:900;text-align:center;display:block;cursor:pointer}
+.blue{background:#7f5a44}.green{background:#4f7a45}.red{background:#9b3f34}.black{background:#6e4b38;border:1px solid #8a5a3f}
+.status{display:flex;gap:8px;align-items:center;color:#3a2a20;margin:6px 0;font-weight:800}
+.dot{width:13px;height:13px;border-radius:50%;background:#1ed760}
+.panel{display:flex;justify-content:space-between;align-items:center;background:#b88463;color:#fff;border:1px solid #8a5a3f;border-radius:12px;padding:10px;margin-top:10px}
+.panel h3{margin:0;font-size:20px}
+.dateBlock,.reviewBox,.raw{background:#f0dfcf;color:#24170f;border:1px solid #8a5a3f;border-radius:12px;overflow:hidden;margin-top:8px}
+.dateTitle,.reviewHead{background:#8a5a3f;color:#fff;padding:10px 12px;font-weight:900}
+.dateTitle{display:flex;justify-content:space-between}
+.item{display:grid;grid-template-columns:1fr 1.2fr 1.35fr .55fr;align-items:center;border-top:1px solid #c49a7b;min-height:58px}
+.item>div{padding:7px;border-left:1px solid #c49a7b}.item>div:first-child{border-left:0}
+.itemSymbol{font-size:27px;font-weight:1000}.itemRule{font-size:16px;font-weight:900}
+.qtyGrid{display:grid;grid-template-columns:38px 38px 42px 38px 38px;gap:3px}
+.qbtn{padding:7px 0;background:#fff;border:1px solid #8a5a3f;color:#111;font-size:15px;border-radius:7px}
+.minus{color:#b00020}.plus{color:#0645ad}.qtyNum{font-size:24px;font-weight:900;text-align:center}
+.lockBtn{font-size:22px;padding:8px;background:#fff;border:1px solid #8a5a3f;color:#111}
+.locked{color:#ffd400;background:#5b3423}
+input[type=file]{display:none}
+.raw{white-space:pre-wrap;padding:8px;font-size:12px;color:#24170f;max-height:70px;overflow:auto}
+.small,.reviewHelp,.note{font-size:13px;color:#3a2a20;margin:6px 2px}
+.reviewBox{max-height:350px;overflow-y:auto}
+.reviewHead,.reviewRow{display:grid;grid-template-columns:1.25fr .75fr 1fr;gap:6px;align-items:center}
+.reviewRow{padding:8px 10px;border-top:1px solid #c49a7b}
+.reviewModel{font-size:15px;font-weight:900;word-break:break-all}.reviewSym{font-size:19px;font-weight:1000}.reviewType{font-size:15px;font-weight:800}
+.dup{background:#d6a989!important;color:#111}.dupMark{color:#6b2f1a;font-size:12px;font-weight:900}
+.tiger{background:#fff;color:#111;text-shadow:none;border:2px solid #8a5a3f;border-radius:8px;padding:5px 6px;font-weight:1000}
+.drawer{display:none;position:fixed;inset:0;background:#000c;z-index:60}
+.inner{position:absolute;right:0;top:0;bottom:0;width:min(470px,96vw);background:#f0dfcf;color:#24170f;border-left:1px solid #8a5a3f;overflow:auto;padding:12px}
+.top{display:flex;justify-content:space-between;align-items:center}.top h2{margin:0;font-size:20px}
+.closeBtn{background:#8a5a3f;color:#fff;border:1px solid #5b3423;border-radius:10px;padding:9px 12px}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0}
+.tab{background:#8a5a3f;color:#fff;border:1px solid #5b3423;border-radius:10px;padding:10px 4px;font-size:14px;font-weight:900}
+.tab.active{background:#5b3423}
+.page{display:none}.page.active{display:block}
+.card{background:#fff6ee;border:1px solid #8a5a3f;border-radius:12px;padding:10px;margin:8px 0}
+.card h3{margin:0 0 8px 0;font-size:17px}
+.txt{font-size:13px;line-height:1.65}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}.tbl th,.tbl td{border:1px solid #8a5a3f;padding:7px;text-align:left}.tbl th{background:#b88463;color:#fff}
+.ruleGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.ruleMini{display:grid;grid-template-columns:40px 1fr 32px;align-items:center;gap:6px;border:1px solid #8a5a3f;background:#fff6ee;border-radius:9px;padding:7px}
+.badge{border-radius:7px;padding:7px 0;text-align:center;font-weight:1000;color:#fff}
+.miniName{font-size:13px;font-weight:900}.miniKey{font-size:12px;color:#6d432f}
+.editRow{display:grid;grid-template-columns:56px 1fr 38px;gap:6px;align-items:center;border:1px solid #8a5a3f;background:#fff6ee;border-radius:10px;padding:7px;margin:7px 0}
+.inp{width:100%;padding:8px;border:1px solid #8a5a3f;border-radius:8px;background:#fff;color:#111;font-weight:800}
+.colorBtn{height:32px;border-radius:7px;border:2px solid #8a5a3f;padding:0}
+.palette{display:none;border:1px solid #8a5a3f;border-radius:12px;background:#fff6ee;padding:10px;margin-top:10px}
+.paletteGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+.swatch{height:32px;border-radius:7px;border:2px solid #8a5a3f}
+
+/* V3.2.1 additions */
+.foldBtn{
+  width:100%;
+  background:#5b3423;
+  color:#fff;
+  border:1px solid #2f1b12;
+  border-radius:12px;
+  padding:12px 8px;
+  font-size:16px;
+  font-weight:900;
+  margin:8px 0;
+}
+.controlBlock.collapsed{display:none}
+.delBtn{
+  margin-top:4px;
+  font-size:18px;
+  padding:8px;
+  background:#9b3f34;
+  color:#fff;
+  border:1px solid #6b241d;
+  border-radius:8px;
+}
+.actionBtns{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:4px;
+}
+
+
+/* V3.4.1 stable checklist layout */
+.v341-result-card{
+  background:#fff;
+  color:#111;
+  border:2px solid #8a5a3f;
+  border-radius:14px;
+  padding:10px;
+}
+.v341-title{
+  font-size:17px;
+  font-weight:1000;
+  color:#155724;
+  margin-bottom:6px;
+}
+.v341-result-line{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:10px;
+}
+.v341-result-model{
+  font-size:28px;
+  line-height:1.1;
+  font-weight:1000;
+  word-break:break-all;
+}
+.v341-result-symbol{
+  font-size:30px;
+  font-weight:1000;
+  white-space:nowrap;
+}
+.v341-sub{
+  margin-top:6px;
+  font-size:14px;
+  font-weight:800;
+}
+.v341-folder{
+  border:1px solid #8a5a3f;
+  border-radius:12px;
+  overflow:hidden;
+  margin-top:10px;
+  background:#f0dfcf;
+}
+.v341-folder-title{
+  background:#8a5a3f;
+  color:#fff;
+  padding:10px 12px;
+  font-weight:900;
+  display:flex;
+  justify-content:space-between;
+  cursor:pointer;
+}
+.v341-folder-body.closed{
+  display:none;
+}
+.v341-card{
+  background:#fff6ee;
+  color:#111;
+  border:1px solid #8a5a3f;
+  border-radius:12px;
+  padding:10px;
+  margin:8px;
+}
+.v341-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+}
+.v341-model{
+  font-size:20px;
+  line-height:1.2;
+  font-weight:1000;
+  word-break:break-all;
+}
+.v341-qty{
+  min-width:58px;
+  text-align:right;
+  white-space:nowrap;
+  font-size:22px;
+  font-weight:1000;
+  color:#5b3423;
+}
+.v341-symbol{
+  margin-top:5px;
+  font-size:26px;
+  line-height:1.1;
+  font-weight:1000;
+}
+.v341-qty-btns{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:6px;
+  margin-top:8px;
+}
+.v341-bottom{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:8px;
+}
+.v341-lock{
+  background:#fff;
+  color:#111;
+  border:1px solid #8a5a3f;
+}
+.v341-lock.locked{
+  color:#ffd400!important;
+  background:#5b3423!important;
+}
+.v341-delete{
+  background:#9b3f34;
+  color:#fff;
+  border:1px solid #6b241d;
+}
+
+
+/* V3.4.2 read wide + delivery folders */
+.v342-read-wrap{
+  width:100%;
+}
+.v342-result-card{
+  background:#fff;
+  color:#111;
+  border:2px solid #8a5a3f;
+  border-radius:14px;
+  padding:10px;
+  width:100%;
+}
+.v342-title{
+  font-size:17px;
+  font-weight:1000;
+  color:#155724;
+  margin-bottom:6px;
+}
+.v342-line{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:12px;
+  align-items:center;
+}
+.v342-model{
+  font-size:30px;
+  line-height:1.1;
+  font-weight:1000;
+  word-break:break-all;
+}
+.v342-symbol{
+  font-size:32px;
+  font-weight:1000;
+  white-space:nowrap;
+}
+.v342-sub{
+  margin-top:6px;
+  font-size:14px;
+  font-weight:800;
+}
+.v342-new-folder{
+  width:100%;
+  background:#5b3423;
+  color:#fff;
+  border:1px solid #2f1b12;
+  border-radius:12px;
+  padding:12px 8px;
+  font-size:16px;
+  font-weight:900;
+  margin:8px 0;
+}
+.v342-delivery{
+  border:1px solid #8a5a3f;
+  border-radius:12px;
+  overflow:hidden;
+  margin-top:10px;
+  background:#f0dfcf;
+}
+.v342-delivery-title{
+  background:#8a5a3f;
+  color:#fff;
+  padding:10px 12px;
+  font-weight:900;
+  display:flex;
+  justify-content:space-between;
+  cursor:pointer;
+}
+.v342-delivery-body.closed{
+  display:none;
+}
+.v342-card{
+  background:#fff6ee;
+  color:#111;
+  border:1px solid #8a5a3f;
+  border-radius:12px;
+  padding:10px;
+  margin:8px;
+}
+.v342-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+}
+.v342-card-model{
+  font-size:20px;
+  line-height:1.2;
+  font-weight:1000;
+  word-break:break-all;
+}
+.v342-card-qty{
+  min-width:58px;
+  text-align:right;
+  white-space:nowrap;
+  font-size:22px;
+  font-weight:1000;
+  color:#5b3423;
+}
+.v342-card-symbol{
+  margin-top:5px;
+  font-size:26px;
+  line-height:1.1;
+  font-weight:1000;
+}
+.v342-qty-btns{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:6px;
+  margin-top:8px;
+}
+.v342-bottom{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:8px;
+}
+.v342-lock{
+  background:#fff;
+  color:#111;
+  border:1px solid #8a5a3f;
+}
+.v342-lock.locked{
+  color:#ffd400!important;
+  background:#5b3423!important;
+}
+.v342-delete{
+  background:#9b3f34;
+  color:#fff;
+  border:1px solid #6b241d;
+}
+
+
+/* V3.4.8 stable: result card always visible */
+.result{
+  min-height:80px;
+  margin-bottom:8px;
+}
+.resultAlways{
+  position:static;
+  
+  
+}
+.controlBlock.collapsed{
+  display:none!important;
+}
+
+
+/* V3.4.10 compact result + compact checklist */
+.result{
+  min-height:40px!important;
+  max-height:40px!important;
+  overflow:hidden!important;
+  margin-bottom:6px!important;
+  padding:4px 8px!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+}
+.result .ruleBox,
+.result .rule-box{
+  display:none!important;
+}
+.result .state{
+  font-size:13px!important;
+  line-height:1!important;
+  margin:0!important;
+}
+.result .readModel,
+.result .read-model,
+.result .model,
+.result .v342-model,
+.result .v341-result-model{
+  font-size:16px!important;
+  line-height:1.05!important;
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  min-width:0!important;
+}
+.result .symbol,
+.result .v342-symbol,
+.result .v341-result-symbol{
+  font-size:16px!important;
+  line-height:1!important;
+}
+.result .meta,
+.result .v342-sub,
+.result .v341-sub{
+  display:none!important;
+}
+.v341-result-card,
+.v342-result-card,
+.v34ResultCard{
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+.v341-title,
+.v342-title,
+.v34ResultTitle{
+  font-size:13px!important;
+  line-height:1!important;
+  margin:0!important;
+}
+.v341-result-line,
+.v342-line,
+.v34ResultMain{
+  display:flex!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  align-items:center!important;
+}
+.v410-folder{
+  border:1px solid #8a5a3f;
+  border-radius:10px;
+  overflow:hidden;
+  margin-top:8px;
+  background:#f0dfcf;
+}
+.v410-folder-title{
+  background:#8a5a3f;
+  color:#fff;
+  padding:8px 10px;
+  font-weight:900;
+  display:flex;
+  justify-content:space-between;
+  cursor:pointer;
+  font-size:14px;
+}
+.v410-folder-body.closed{display:none}
+.v410-row{
+  display:grid;
+  grid-template-columns:1fr 48px 44px 128px 60px;
+  gap:3px;
+  align-items:center;
+  padding:4px;
+  border-top:1px solid #c49a7b;
+  background:#fff6ee;
+  color:#111;
+  min-height:38px;
+}
+.v410-model{
+  font-size:12px;
+  font-weight:1000;
+  line-height:1.1;
+  word-break:break-all;
+}
+.v410-symbol{
+  font-size:14px;
+  font-weight:1000;
+  text-align:center;
+}
+.v410-qty{
+  font-size:14px;
+  font-weight:1000;
+  text-align:right;
+  color:#5b3423;
+  white-space:nowrap;
+}
+.v410-qtybtns{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:2px;
+}
+.v410-qtybtns .qbtn{
+  font-size:11px!important;
+  padding:4px 0!important;
+  border-radius:5px!important;
+}
+.v410-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:2px;
+}
+.v410-actions button{
+  font-size:10px!important;
+  padding:5px 1px!important;
+  border-radius:5px!important;
+}
+.v410-lock{
+  background:#fff;
+  color:#111;
+  border:1px solid #8a5a3f;
+}
+.v410-lock.locked{
+  color:#ffd400!important;
+  background:#5b3423!important;
+}
+.v410-delete{
+  background:#9b3f34;
+  color:#fff;
+  border:1px solid #6b241d;
+}
+@media(max-width:430px){
+  .v410-row{grid-template-columns:1fr 44px 40px 112px 54px}
+  .v410-model{font-size:11px}
+  .v410-symbol{font-size:13px}
+  .v410-qty{font-size:13px}
+}
+
+
+/* V3.4.11: result card restored, camera OCR frame is 40px */
+.result{
+  min-height:unset!important;
+  max-height:none!important;
+  overflow:visible!important;
+  margin-bottom:10px!important;
+  padding:14px!important;
+  display:grid!important;
+  grid-template-columns:1fr 108px!important;
+  align-items:stretch!important;
+}
+.result .ruleBox,
+.result .rule-box{
+  display:flex!important;
+}
+.result .state{
+  font-size:18px!important;
+  line-height:1.2!important;
+  margin:0!important;
+}
+.result .readModel,
+.result .read-model,
+.result .model{
+  font-size:26px!important;
+  line-height:1.15!important;
+  margin:6px 0!important;
+}
+.result .symbol{
+  font-size:54px!important;
+  line-height:1!important;
+}
+.result .meta{
+  display:block!important;
+  font-size:15px!important;
+  line-height:1.5!important;
+}
+.ocrGuideBox{
+  position:absolute!important;
+  left:4%!important;
+  right:4%!important;
+  top:calc(50% - 20px)!important;
+  height:40px!important;
+  border:3px solid rgba(255,255,255,.95)!important;
+  border-radius:10px!important;
+  pointer-events:none!important;
+  box-shadow:0 0 8px rgba(255,255,255,.7)!important;
+}
+
+
+/* V3.5 safe2: OCR matching only */
+.v35-conf{
+  display:inline-block;
+  font-weight:1000;
+  padding:2px 6px;
+  border-radius:999px;
+  background:#1f9d45;
+  color:#fff;
+  margin-left:4px;
+}
+
+canvas{display:none}
+</style>
+</head>
+<body>
+<header>OCR照会 V3.5 安定試作2<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
+<div class="wrap">
+<section class="camera"><video id="video" playsinline muted></video><div class="crossH"></div><div class="crossV"></div><div class="guide">型番・照会記号を十字の中心に合わせてください</div></section>
+<section class="result resultAlways" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:white"><div class="ruleKey">白</div><div class="ruleName">その他</div></div></section>
+<button id="btnFold" class="foldBtn">▲ 操作部を隠す</button>
+<div id="controlBlock" class="controlBlock">
+<div class="readmode"><button id="btnModelRead" class="modeBtn active">型番読取</button><button id="btnSymbolRead" class="modeBtn">照会記号読取</button></div>
+
+<div class="grid3"><button id="btnStart" class="blue">📷 カメラ起動<br><small>自動読取</small></button><button id="btnAdd" class="green">✔ 登録<br><small>手動追加</small></button><button id="btnLight" class="black">💡<br>ライト</button></div>
+<div class="grid2"><button id="btnRead" class="black">1回だけ読取</button><button id="btnStop" class="red">■ 停止</button></div>
+<div class="regmode"><button id="btnManualMode" class="modeBtn active">手動登録</button><button id="btnAutoMode" class="modeBtn">自動登録</button></div>
+<div id="modeNote" class="note">現在：手動登録モード</div>
+<div class="status"><span class="dot"></span><span id="status">待機中</span></div>
+</div>
+<section class="panel"><h3>チェックリスト</h3></section>
+<button id="btnNewDelivery" class="v342-new-folder">＋ 新しい搬入フォルダ</button><div id="checkList"></div>
+<div class="small">チェックリストが0件の場合は保存しません。保存後に削除/残すを選べます。</div>
+<div class="foot"><label for="csvInput" class="fileLabel black">📁 CSV読込</label><button id="btnExport" class="blue">⬇ CSV書き出し</button><input id="csvInput" type="file" accept=".csv,text/csv"></div>
+<div class="small" id="csvInfo">初期データ：33件</div><div class="raw" id="rawBox">読取文字：未読取</div>
+<section class="panel"><h3>全型番を再確認</h3><span id="dataCount">33件</span></section>
+<div class="reviewHelp">基本3列＋あとで 開口サイズ / W数 / 電流値 を追加できます。</div><div id="reviewList" class="reviewBox"></div>
+</div>
+<div id="drawer" class="drawer"><div class="inner"><div class="top"><h2>ヘルプ（V3.5 安定試作2）</h2><button id="btnClose" class="closeBtn">閉じる</button></div><div class="tabs"><button class="tab active" data-tab="list">ルール一覧</button><button class="tab" data-tab="edit">ルール編集</button><button class="tab" data-tab="how">使い方</button></div><div id="page_list" class="page active"><div class="card"><h3>ルール一覧（20色）</h3><div class="txt">紹介記号・器具種別から分類を自動判定します。</div><div id="ruleList" class="ruleGrid"></div></div><div class="card"><h3>主な判定</h3><table class="tbl"><tr><th>記号</th><th>分類</th></tr><tr><td>E</td><td>非常照明</td></tr><tr><td>Y</td><td>通路誘導灯</td></tr><tr><td>X</td><td>避難口誘導灯</td></tr><tr><td>U</td><td>防湿・防雨</td></tr><tr><td>LS</td><td>誘導標識</td></tr><tr><td>Z</td><td>階段通路誘導灯</td></tr><tr><td>中継</td><td>信号装置・中継器</td></tr></table></div></div><div id="page_edit" class="page"><div class="card"><h3>ルール編集</h3><div class="txt">略称・表示名・色を変更できます。</div><div id="ruleEditList"></div></div><div id="palettePanel" class="palette"><b>色を選択</b><div id="paletteGrid" class="paletteGrid"></div></div></div><div id="page_how" class="page"><div class="card"><h3>使い方</h3><div class="txt">型番読取：器具型番から紹介記号を表示。<br>照会記号読取：E1aなどから器具型番・開口・W数・電流値を表示。</div></div><div class="card"><h3>CSV形式</h3><table class="tbl"><tr><th>列</th><th>内容</th></tr><tr><td>型番</td><td>NNFB84665など</td></tr><tr><td>紹介記号</td><td>E1aなど</td></tr><tr><td>器具種別</td><td>非常照明など</td></tr><tr><td>開口サイズ</td><td>あとで入力</td></tr><tr><td>W数</td><td>あとで入力</td></tr><tr><td>電流値</td><td>あとで入力</td></tr></table></div></div></div></div>
+<canvas id="work"></canvas>
+<script>
+const DATA_INIT=[{"model": "NNFB84665", "symbol": "E1a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84695", "symbol": "E1a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87609", "symbol": "E2a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87649", "symbol": "E2a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84005", "symbol": "E3a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84045", "symbol": "E3a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84715", "symbol": "E4a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNLG01509", "symbol": "E5a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84105", "symbol": "E6a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87009", "symbol": "E7a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87049", "symbol": "E7a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87109", "symbol": "E8a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87919", "symbol": "E9a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40356C LE1", "symbol": "X1L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40352C LE1", "symbol": "X2", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40316C LE1", "symbol": "X3L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40312C LE1", "symbol": "X4", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C", "symbol": "X5Lu", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C", "symbol": "X6u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C LE1", "symbol": "X7u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42337C LE1", "symbol": "X8u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW40315 LE1", "symbol": "X9L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42327C LE1", "symbol": "X10u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40356C LE1", "symbol": "Y1L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40366C LE1", "symbol": "Y2L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40352C LE1", "symbol": "Y3", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40362C LE1", "symbol": "Y4", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40312C LE1", "symbol": "Y5", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40322C LE1", "symbol": "Y6", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C LE1", "symbol": "Y7u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42337C LE1", "symbol": "Y8u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA01520J", "symbol": "Y9", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FSK90910K", "symbol": "自己点検リモコン", "type": "", "aperture": "", "watt": "", "currentA": ""}];
+let data=DATA_INIT.slice(),checklist=[],current=null,stream=null,worker=null,timer=null,busy=false,torchOn=false,isStopped=false,editIdx=null,readTarget="model",registerMode="manual",lastAutoKey="",lastAutoTime=0,deliveries=[],activeDeliveryId=null,deliveryOpen={},folderOpen={},controlsCollapsed=false;
+let rules=[{key:"E",name:"非常照明",color:"#35d66b"},{key:"Y",name:"通路誘導灯",color:"#1d7cff"},{key:"X",name:"避難口誘導灯",color:"#ff3030"},{key:"U",name:"防湿・防雨",color:"#43cde6"},{key:"LS",name:"誘導標識",color:"#ffffff"},{key:"Z",name:"階段通路誘導灯",color:"#ffd31a"},{key:"中継",name:"信号装置・中継器",color:"#a3e635"},{key:"埋",name:"埋込",color:"#9747ff"},{key:"直",name:"直付",color:"#ff8200"},{key:"壁",name:"壁付",color:"#b08cff"},{key:"天",name:"天井",color:"#999999"},{key:"低",name:"低天井",color:"#7dd3fc"},{key:"中",name:"中天井",color:"#60a5fa"},{key:"高",name:"高天井",color:"#2563eb"},{key:"BH",name:"B級BH",color:"#f97316"},{key:"BL",name:"B級BL",color:"#fb923c"},{key:"C",name:"C級",color:"#facc15"},{key:"リ",name:"リモコン",color:"#ff6aa8"},{key:"器",name:"中継器",color:"#00d7c7"},{key:"他",name:"その他",color:"#ffffff"}];
+const palette=["#ff3030","#1d7cff","#ffd31a","#ff8200","#35d66b","#9747ff","#43cde6","#7a3f18","#ffffff","#999999","#b08cff","#f97316","#fb923c","#a3e635","#60a5fa","#2563eb","#facc15","#ff6aa8","#00d7c7","#111111"];
+const esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+window.addEventListener("DOMContentLoaded",()=>{loadRules();btnFold.onclick=toggleControls;btnModelRead.onclick=()=>setReadTarget("model");btnSymbolRead.onclick=()=>setReadTarget("symbol");btnManualMode.onclick=()=>setRegisterMode("manual");btnAutoMode.onclick=()=>setRegisterMode("auto");if(typeof btnNewDelivery!=='undefined')btnNewDelivery.onclick=createNewDelivery;
+btnStart.onclick=startAuto;btnAdd.onclick=addCurrent;btnLight.onclick=toggleLight;btnRead.onclick=readOnce;btnStop.onclick=stopAll;btnExport.onclick=exportCsv;csvInput.onchange=loadCsv;btnHelp.onclick=()=>{drawer.style.display="block";renderHelp();showTab("list")};btnClose.onclick=()=>drawer.style.display="none";document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));renderChecklist();renderReviewList();});
+function setStatus(s){status.textContent=s}
+
+function v35FixModel(s){
+  let x=String(s||"").toUpperCase();
+
+  // 全角・誤読補正
+  x=x.replace(/[Ｏ]/g,"O").replace(/[０]/g,"0").replace(/[１]/g,"1").replace(/[５]/g,"5");
+  x=x.replace(/LEI/g,"LE1").replace(/LFI/g,"LE1").replace(/1E1/g,"LE1").replace(/IE1/g,"LE1");
+  x=x.replace(/L\s*E\s*1/g,"LE1").replace(/LE\s*1/g,"LE1");
+
+  // 区切りを全部消したキーを作る
+  let k=x.replace(/[^A-Z0-9]/g,"");
+
+  // FA の数字部だけ補正
+  k=k.replace(/FA([0-9OISB]{4,8})/g,function(m,n){
+    let d=n.replace(/O/g,"0").replace(/I/g,"1").replace(/S/g,"5").replace(/B/g,"8");
+    return "FA"+d;
+  });
+
+  // FA40356CLE1 / FA40356C1E1 / FA40356CLEI → FA40356C LE1
+  let m=k.match(/FA[0-9]{5,6}C(LE1|1E1|LEI|IE1)/);
+  if(m){
+    return k.replace(/(FA[0-9]{5,6}C)(LE1|1E1|LEI|IE1).*/,"$1 LE1");
+  }
+
+  return k.trim();
+}
+function v35Key(s){
+  return v35FixModel(s).replace(/[^A-Z0-9]/g,"").toUpperCase();
+}
+
+function ensureDelivery(){
+  if(!activeDeliveryId){
+    createNewDelivery();
+  }
+}
+function deliveryLabel(){
+  let d=new Date();
+  return d.toISOString().slice(0,10).replaceAll("-","/")+" 搬入"+(deliveries.length+1);
+}
+function createNewDelivery(){
+  let d=new Date();
+  let id="D"+Date.now();
+  let label=deliveryLabel();
+  deliveries.unshift({id,label,created:d.toLocaleTimeString().slice(0,5)});
+  activeDeliveryId=id;
+  deliveryOpen[id]=true;
+  setStatus("新しい搬入フォルダ："+label);
+  renderChecklist();
+}
+function toggleDelivery(id){
+  deliveryOpen[id]=deliveryOpen[id]===false?true:false;
+  renderChecklist();
+}
+function v342DeleteItem(i){
+  if(!confirm("この行を削除しますか？"))return;
+  checklist.splice(i,1);
+  renderChecklist();
+}
+function v341ToggleFolder(date){
+  folderOpen[date]=folderOpen[date]===false?true:false;
+  renderChecklist();
+}
+function v341DeleteItem(i){
+  if(!confirm("この行を削除しますか？"))return;
+  checklist.splice(i,1);
+  renderChecklist();
+}
+function toggleControls(){
+  controlsCollapsed=!controlsCollapsed;
+  controlBlock.classList.toggle("collapsed",controlsCollapsed);
+  btnFold.textContent=controlsCollapsed?"▼ 操作部を表示":"▲ 操作部を隠す";
+}
+function deleteChecklistItem(i){
+  if(!confirm("この行を削除しますか？"))return;
+  checklist.splice(i,1);
+  renderChecklist();
+}
+function loadRules(){try{let s=localStorage.getItem("ocrRulesV32");if(s)rules=JSON.parse(s)}catch(e){}}
+function saveRules(){localStorage.setItem("ocrRulesV32",JSON.stringify(rules));renderReviewList();renderChecklist();renderHelp()}
+function setReadTarget(t){readTarget=t;btnModelRead.classList.toggle("active",t==="model");btnSymbolRead.classList.toggle("active",t==="symbol");setStatus(t==="model"?"型番読取モード":"照会記号読取モード")}
+function setRegisterMode(m){registerMode=m;btnManualMode.classList.toggle("active",m==="manual");btnAutoMode.classList.toggle("active",m==="auto");modeNote.textContent=m==="auto"?"現在：自動登録モード（未登録・重複型番・一致率不足は自動登録しません）":"現在：手動登録モード";setStatus(m==="auto"?"自動登録モード":"手動登録モード")}
+function showTab(n){document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===n));document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));document.getElementById("page_"+n).classList.add("active")}
+function renderHelp(){ruleList.innerHTML=rules.map((r,i)=>`<div class="ruleMini"><div class="badge" style="background:${r.color}">${esc(r.key)}</div><div><div class="miniName">${esc(r.name)}</div><div class="miniKey">分類 ${i+1}</div></div><button class="colorBtn" style="background:${r.color}" data-c="${i}"></button></div>`).join("");ruleList.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>openPalette(+b.dataset.c));ruleEditList.innerHTML=rules.map((r,i)=>`<div class="editRow"><input class="inp" value="${esc(r.key)}" data-i="${i}" data-f="key"><input class="inp" value="${esc(r.name)}" data-i="${i}" data-f="name"><button class="colorBtn" style="background:${r.color}" data-e="${i}"></button></div>`).join("");ruleEditList.querySelectorAll("[data-f]").forEach(inp=>inp.onchange=()=>{rules[+inp.dataset.i][inp.dataset.f]=inp.value;saveRules()});ruleEditList.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>openPalette(+b.dataset.e))}
+function openPalette(i){editIdx=i;palettePanel.style.display="block";paletteGrid.innerHTML=palette.map(c=>`<button class="swatch" style="background:${c}" data-p="${c}"></button>`).join("");paletteGrid.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{rules[editIdx].color=b.dataset.p;palettePanel.style.display="none";saveRules()})}
+function catByName(n){return rules.find(r=>r.name===n)||rules[rules.length-1]}
+function categoryFor(sym,type){sym=String(sym||"").toUpperCase();type=String(type||"");if(sym.startsWith("LS")||type.includes("誘導標識"))return catByName("誘導標識");if(sym.startsWith("E")||type.includes("非常照明"))return catByName("非常照明");if(sym.startsWith("Y")||type.includes("通路誘導"))return catByName("通路誘導灯");if(sym.startsWith("X")||type.includes("避難口"))return catByName("避難口誘導灯");if(sym.startsWith("Z")||type.includes("階段通路"))return catByName("階段通路誘導灯");if(sym.includes("U")||type.includes("防湿")||type.includes("防雨")||type.includes("防水"))return catByName("防湿・防雨");if(type.includes("中継")||type.includes("信号"))return catByName("信号装置・中継器");if(type.includes("埋込"))return catByName("埋込");if(type.includes("直付"))return catByName("直付");return catByName("その他")}
+function normalize(s){return(s||"").toUpperCase().replace(/[ＯO]/g,"0").replace(/[ＩIＬ]/g,"1").replace(/[Ｓ]/g,"5").replace(/[Ｂ]/g,"8").replace(/[　\\s_.,:;|/\\\\()[\\]{}]+/g,"").replace(/[^A-Z0-9\\-]/g,"").trim()}
+function normSymbol(s){return String(s||"").toUpperCase().replace(/[　\\s_.,:;|/\\\\()[\\]{}]+/g,"").replace(/[^A-Z0-9一-龥ぁ-んァ-ン\\-]/g,"")}
+function looksLikeModel(s){let x=normalize(s);return x.length>=5&&x.length<=24&&/^(NNF|NNFB|NNLG|FA|FW|FSK|FK|LGB|XL|XND|NW|NDN)[A-Z0-9\\-]{3,}/.test(x)}
+function extractCandidates(text){
+  let fixed=v35FixModel(text);
+  let j=normalize(fixed),a=[];
+
+  if(fixed.match(/FA[0-9]{5,6}C\s?LE1/))a.push(fixed);
+
+  let compact=v35Key(text);
+  let fa=compact.match(/FA[0-9]{5,6}CLE1/g);
+  if(fa)a.push(...fa.map(x=>x.replace(/(FA[0-9]{5,6}C)LE1/,"$1 LE1")));
+
+  [/NNFB\\d{5}[A-Z]*/g,/NNF\\d{5}[A-Z]*/g,/NNLG\\d{5}[A-Z]*/g,/FSK\\d{5}[A-Z]*/g,/FA[A-Z0-9\\-]{5,18}/g,/FW[A-Z0-9\\-]{5,18}/g,/FK[A-Z0-9\\-]{5,18}/g].forEach(p=>{
+    let m=j.match(p);
+    if(m)a.push(...m)
+  });
+
+  a.push(...(j.match(/[A-Z]{2,}[A-Z0-9\\-]{3,20}/g)||[]).filter(looksLikeModel));
+  return[...new Set(a.map(v35FixModel))]
+}
+function extractSymbolCandidates(text){let j=normSymbol(text),a=[];[/LS\\d{0,3}[A-Z]*/g,/[EYXZU]\\d{0,3}[A-Z]*/g,/[A-Z]\\d+[A-Z]*/g].forEach(p=>{let m=j.match(p);if(m)a.push(...m)});a.push(...(j.match(/[A-Z]{1,3}\\d{0,3}[A-Z]*/g)||[]).filter(x=>x.length>=1&&x.length<=8));return[...new Set(a)]}
+function safeOcrText(raw){let c=readTarget==="symbol"?extractSymbolCandidates(raw):extractCandidates(raw);if(c.length)return c[0];return String(raw||"").split(/\\n/).map(x=>x.trim()).filter(Boolean).sort((a,b)=>b.length-a.length)[0]?.slice(0,32)||"読取文字なし"}
+function sim(a,b){a=normalize(a);b=normalize(b);let m=a.length,l=b.length;if(!m||!l)return 0;let d=Array.from({length:m+1},()=>Array(l+1).fill(0));for(let i=0;i<=m;i++)d[i][0]=i;for(let j=0;j<=l;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=l;j++){let c=a[i-1]===b[j-1]?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c)}return 1-d[m][l]/Math.max(m,l)}
+function matchModel(text){
+  let c=extractCandidates(text),j=v35Key(text);
+
+  for(const r of data){
+    let m=v35Key(r.model);
+    if(j.includes(m)||m.includes(j))return{hit:r,cand:r.model,score:1}
+  }
+
+  let best={hit:null,cand:c[0]||"",score:0};
+
+  for(const r of data){
+    let m=v35Key(r.model);
+    for(const x of c){
+      let s=sim(v35Key(x),m);
+      if(s>best.score)best={hit:r,cand:x,score:s}
+    }
+  }
+
+  if(best.score>=0.66)return best;
+  if(c.length)return{hit:null,cand:c[0],score:best.score};
+  return{hit:null,cand:"未読取",score:0}
+}
+function matchSymbol(text){let cs=extractSymbolCandidates(text);for(const c of cs){let nc=normSymbol(c);let hit=data.find(r=>normSymbol(r.symbol)===nc);if(hit)return{hit,cand:c,score:1}}for(const c of cs){let nc=normSymbol(c);let hit=data.find(r=>normSymbol(r.symbol).startsWith(nc)||nc.startsWith(normSymbol(r.symbol)));if(hit)return{hit,cand:c,score:.86}}return{hit:null,cand:cs[0]||safeOcrText(text),score:0}}
+function isDuplicateModel(model){let k=normalize(model);return data.filter(r=>normalize(r.model)===k).length>1}
+function addCurrentCore(silent=false){if(!current){if(!silent)alert("先に読取してください");return false}ensureDelivery();let d=new Date(),date=d.toISOString().slice(0,10).replaceAll("-","/"),time=d.toTimeString().slice(0,5),key=current.missing?current.model:current.symbol;let f=checklist.find(x=>x.deliveryId===activeDeliveryId&&x.symbol===key&&x.model===current.model);if(f&&!f.locked)f.qty+=1;else checklist.unshift({deliveryId:activeDeliveryId,date,time,symbol:key,model:current.model,type:current.type,qty:1,locked:false,missing:current.missing});renderChecklist();return true}
+function tryAutoRegister(hit,score){if(registerMode!=="auto"||readTarget!=="model")return;if(!hit||score<0.80){setStatus("自動停止：一致率不足");return}if(isDuplicateModel(hit.model)){setStatus("自動停止：重複型番のため手動確認");return}let key=hit.model+"|"+hit.symbol,now=Date.now();if(lastAutoKey===key&&now-lastAutoTime<2000)return;lastAutoKey=key;lastAutoTime=now;if(addCurrentCore(true))setStatus("自動登録完了："+hit.symbol)}
+async function ensureWorker(){if(worker)return worker;setStatus("OCR準備中...");worker=await Tesseract.createWorker("eng",1);await worker.setParameters({tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ",tessedit_pageseg_mode:"6"});setStatus("OCR準備完了");return worker}
+async function startAuto(){try{isStopped=false;await startCamera();if(timer)clearInterval(timer);timer=setInterval(readOnce,1200);await readOnce()}catch(e){setStatus("カメラエラー："+e.message);alert("カメラ起動失敗："+e.message)}}
+async function startCamera(){if(stream)return;stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});video.srcObject=stream;await video.play();await ensureWorker();setStatus("自動読取中")}
+function stopAll(){isStopped=true;if(timer){clearInterval(timer);timer=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}video.srcObject=null;busy=false;setStatus("停止しました")}
+async function toggleLight(){try{if(!stream)return alert("先にカメラ起動してください");let tr=stream.getVideoTracks()[0],cap=tr.getCapabilities?tr.getCapabilities():null;if(!cap||!cap.torch)return alert("このスマホ/ブラウザはライト制御に対応していません");torchOn=!torchOn;await tr.applyConstraints({advanced:[{torch:torchOn}]});setStatus(torchOn?"ライトON":"ライトOFF")}catch(e){alert("ライト切替エラー："+e.message)}}
+function crop(){
+if(!video.videoWidth)return null;
+let c=work;
+let sw=video.videoWidth*.92;
+let sh=Math.max(video.videoHeight*.10, 80);
+let sx=(video.videoWidth-sw)/2;
+let sy=(video.videoHeight-sh)/2;
+let scale=1500/sw;
+c.width=1500;
+c.height=Math.max(140,Math.floor(sh*scale));
+let ctx=c.getContext("2d",{willReadFrequently:true});
+ctx.drawImage(video,sx,sy,sw,sh,0,0,c.width,c.height);
+return c}
+async function readOnce(){if(isStopped)return;if(!stream)return alert("先にカメラ起動してください");if(busy)return;busy=true;setStatus("読取中...");try{let c=crop();if(!c){setStatus("カメラ準備中");return}let w=await ensureWorker(),r=await w.recognize(c);if(isStopped)return;let text=r.data.text||"";rawBox.textContent="読取文字：\\n"+text;let m=readTarget==="symbol"?matchSymbol(text):matchModel(text);if(m.hit){if(readTarget==="symbol")showSymbolHit(m.hit,m.score,m.cand);else{showHit(m.hit,m.score,m.cand);tryAutoRegister(m.hit,m.score)}}else showMissing(m.cand,text)}catch(e){setStatus("読取エラー："+e.message)}finally{busy=false}}
+function showHit(hit,score,read){
+let cat=categoryFor(hit.symbol,hit.type);
+current={model:hit.model,symbol:hit.symbol,type:hit.type,missing:false};
+result.style.borderColor=cat.color;
+result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card"><div class="v342-title">✅ 照合一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol" style="color:${cat.color}">${esc(hit.symbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.model)} / ${isDuplicateModel(hit.model)?"⚠ 重複型番：手動確認 / ":""}<span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div></div></div><div class="ruleBox" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
+setStatus(hit.model+" → "+hit.symbol)}
+function showSymbolHit(hit,score,read){
+let cat=categoryFor(hit.symbol,hit.type);
+current={model:hit.model,symbol:hit.symbol,type:hit.type,missing:false};
+result.style.borderColor=cat.color;
+result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card"><div class="v342-title">✅ 照会記号一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol" style="color:${cat.color}">${esc(hit.symbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.symbol)} / <span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div><div class="specBox"><div class="spec"><small>開口</small>${esc(hit.aperture||"未入力")}</div><div class="spec"><small>W数</small>${esc(hit.watt||"未入力")}</div><div class="spec"><small>電流</small>${esc(hit.currentA||"未入力")}</div><div class="spec"><small>型番</small>${esc(hit.model||"")}</div></div></div></div><div class="ruleBox" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
+setStatus("照会一致："+hit.symbol)}
+function showMissing(cand,raw){let shown=(cand&&cand!=="未読取")?String(cand).slice(0,24):safeOcrText(raw);current={model:shown,symbol:"未登録",type:"",missing:true};result.style.borderColor="#fff";result.innerHTML=`<div><div class="state">未登録</div><div class="readModel">${esc(shown)}</div><div class="meta">OCR読取文字を表示中<br>自動登録は停止します</div></div><div class="ruleBox" style="color:#fff"><div class="ruleKey">白</div><div class="ruleName">未登録</div></div>`;setStatus("自動停止：未登録")}
+function addCurrent(){addCurrentCore(false)}
+function renderChecklist(){
+if(typeof deliveries!=="undefined"&&deliveries.length===0&&checklist.length>0){
+  let id="D0";
+  deliveries.push({id,label:"既存リスト",created:""});
+  activeDeliveryId=id;
+  deliveryOpen[id]=true;
+  checklist.forEach(x=>{if(!x.deliveryId)x.deliveryId=id});
+}
+let h="";
+if(typeof deliveries!=="undefined"&&deliveries.length){
+  deliveries.forEach(del=>{
+    let arr=checklist.filter(x=>x.deliveryId===del.id);
+    let total=arr.reduce((s,x)=>s+x.qty,0);
+    if(deliveryOpen[del.id]===undefined)deliveryOpen[del.id]=true;
+    let open=deliveryOpen[del.id]!==false;
+    h+=`<div class="v410-folder"><div class="v410-folder-title" data-delivery="${del.id}"><span>${open?"▼":"▶"} ${esc(del.label)}（${arr.length}件）</span><span>合計:${total}</span></div><div class="v410-folder-body ${open?"":"closed"}">`;
+    arr.forEach(x=>{
+      let c=categoryFor(x.symbol,x.type);
+      let idx=checklist.indexOf(x);
+      h+=`<div class="v410-row"><div class="v410-model">${esc(x.model)}</div><div class="v410-symbol" style="color:${c.color}">${esc(x.symbol)}</div><div class="v410-qty">${x.qty}台</div><div class="v410-qtybtns"><button class="qbtn minus" data-i="${idx}" data-d="-10">-10</button><button class="qbtn minus" data-i="${idx}" data-d="-1">-1</button><button class="qbtn plus" data-i="${idx}" data-d="1">+1</button><button class="qbtn plus" data-i="${idx}" data-d="10">+10</button></div><div class="v410-actions"><button class="v410-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v410-delete" data-del="${idx}">削除</button></div></div>`;
+    });
+    h+=`</div></div>`;
+  });
+}
+checkList.innerHTML=h;
+checkList.querySelectorAll("[data-delivery]").forEach(b=>b.onclick=()=>toggleDelivery(b.dataset.delivery));
+checkList.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{let i=+b.dataset.i;if(checklist[i].locked)return;checklist[i].qty=Math.max(0,checklist[i].qty+Number(b.dataset.d));renderChecklist()});
+checkList.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{let i=+b.dataset.l;checklist[i].locked=!checklist[i].locked;renderChecklist()});
+checkList.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>v410DeleteItem(+b.dataset.del));
+}
+function renderReviewList(){dataCount.textContent=data.length+"件";let counts={};data.forEach(r=>{let k=normalize(r.model);counts[k]=(counts[k]||0)+1});reviewList.innerHTML='<div class="reviewHead"><div>型番</div><div>紹介記号</div><div>器具種別</div></div>'+data.map(r=>{let c=categoryFor(r.symbol,r.type),dup=counts[normalize(r.model)]>1;return `<div class="reviewRow ${dup?"dup":""}"><div class="reviewModel">${esc(r.model)}${dup?' <span class="dupMark">重複</span>':""}</div><div class="reviewSym" style="color:${c.color}">${esc(r.symbol)}</div><div class="reviewType">${esc(r.type||"")}</div></div>`}).join("")}
+function exportCsv(){
+if(!checklist.length){
+  checklist=[];
+  if(typeof deliveries!=="undefined")deliveries=[];
+  if(typeof activeDeliveryId!=="undefined")activeDeliveryId=null;
+  if(typeof deliveryOpen!=="undefined")deliveryOpen={};
+  renderChecklist();
+  setStatus("0件のためチェックリストを削除しました");
+  alert("0件のためチェックリストを削除しました");
+  return;
+}
+let lines=["搬入フォルダ,日付,時刻,型番,紹介記号,数量,固定"];
+checklist.forEach(x=>{
+  let del=(typeof deliveries!=="undefined"&&deliveries.find)?deliveries.find(d=>d.id===x.deliveryId):null;
+  lines.push([del?del.label:"",x.date,x.time,x.model,x.symbol,x.qty,x.locked?"固定":""].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(","))
+});
+let blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8;"});
+let a=document.createElement("a");
+let d=new Date().toISOString().slice(0,10).replaceAll("-","");
+a.href=URL.createObjectURL(blob);
+a.download="チェックリスト_"+d+".csv";
+a.click();
+setTimeout(()=>{
+  let clear=confirm("CSV保存しました。\nチェックリストを削除しますか？\n\nOK：削除する\nキャンセル：残す");
+  if(clear){
+    checklist=[];
+    if(typeof deliveries!=="undefined")deliveries=[];
+    if(typeof activeDeliveryId!=="undefined")activeDeliveryId=null;
+    if(typeof deliveryOpen!=="undefined")deliveryOpen={};
+    renderChecklist();
+    setStatus("保存後、チェックリストを削除しました");
+  }else{
+    setStatus("保存後、チェックリストを残しました");
+  }
+},300);
+}
+function loadCsv(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{let rows=parseCsv(r.result);if(rows.length){data=rows;csvInfo.textContent="読込済み："+f.name+" / "+rows.length+"件";renderReviewList();alert(rows.length+"件読み込みました");setStatus("CSV読込："+rows.length+"件")}else alert("CSV読込失敗：型番 と 紹介記号/照会記号 の列が必要です")};r.readAsText(f,"utf-8")}
+function parseCsv(t){let lines=t.replace(/\\r/g,"").split("\\n").filter(x=>x.trim());if(lines.length<2)return[];let head=splitCsv(lines[0]).map(x=>x.trim().replace(/^\\ufeff/,""));return lines.slice(1).map(line=>{let cols=splitCsv(line),row={};head.forEach((k,i)=>row[k]=cols[i]||"");let model=row["型番"]||row["器具型番"]||row["model"]||"",symbol=row["紹介記号"]||row["照会記号"]||row["記号"]||"",type=row["器具種別"]||row["種別"]||row["type"]||"";return{model:String(model).trim(),symbol:String(symbol).trim(),type:String(type).trim(),aperture:String(row["開口サイズ"]||row["開口"]||"").trim(),watt:String(row["W数"]||row["消費電力"]||row["W"]||"").trim(),currentA:String(row["電流値"]||row["電流"]||row["A"]||"").trim()}}).filter(r=>r.model&&r.symbol)}
+function splitCsv(line){let out=[],cur="",q=false;for(let i=0;i<line.length;i++){let ch=line[i],nx=line[i+1];if(ch=='"'&&q&&nx=='"'){cur+='"';i++}else if(ch=='"')q=!q;else if(ch==","&&!q){out.push(cur);cur=""}else cur+=ch}out.push(cur);return out}
+</script>
+</body>
+</html>
