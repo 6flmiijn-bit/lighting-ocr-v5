@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCR照会 V3.5.14</title>
+<title>OCR照会 V3.5.15</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -1671,11 +1671,91 @@ input[type=file]{display:none}
   }
 }
 
+
+/* V3.5.15 no outline + dark white rules + visibility fixes */
+.v3514-outline,
+.v3514-compact .v3514-symbol,
+.v3514-expanded .v3514-symbol,
+.v3513-symbol,
+.reviewSym{
+  text-shadow:none!important;
+  -webkit-text-stroke:0!important;
+}
+.v3514-darktext,
+.ruleBox.lightRule,
+.ruleBox.v3514-lightRule{
+  color:#111!important;
+  border-color:#111!important;
+  background:#e5e7eb!important;
+  text-shadow:none!important;
+}
+.ruleBox.lightRule .ruleKey,
+.ruleBox.lightRule .ruleName,
+.ruleBox.v3514-lightRule .ruleKey,
+.ruleBox.v3514-lightRule .ruleName{
+  color:#111!important;
+  text-shadow:none!important;
+}
+.v3514-compact .v3513-symbol,
+.v3513-compact .v3513-symbol{
+  font-size:12px!important;
+  line-height:1.05!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  word-break:break-word!important;
+  overflow-wrap:anywhere!important;
+  text-align:right!important;
+}
+.v3514-compact .v3513-model,
+.v3513-compact .v3513-model{
+  min-width:0!important;
+  overflow:hidden!important;
+}
+.v3514-compact .v3513-main,
+.v3513-compact .v3513-main{
+  grid-template-columns:minmax(0,1fr) minmax(50px,72px) 24px 42px 24px 34px 44px!important;
+  gap:2px!important;
+}
+.v3514-compact .v3513-mini-delete,
+.v3513-compact .v3513-mini-delete{
+  font-size:9px!important;
+}
+.reviewSym{
+  color:#111!important;
+  background:#fff!important;
+  border:1px solid #8a5a3f;
+  border-radius:6px;
+  padding:2px 4px;
+}
+.reviewRow .reviewSym[style]{
+  color:#111!important;
+}
+.badge[style],
+.swatch[style]{
+  color:#111!important;
+}
+.ruleMini .badge{
+  color:#111!important;
+  text-shadow:none!important;
+  border:1px solid #111;
+}
+@media(max-width:430px){
+  .v3514-compact .v3513-main,
+  .v3513-compact .v3513-main{
+    grid-template-columns:minmax(0,1fr) 48px 22px 38px 22px 32px 40px!important;
+  }
+  .v3514-compact .v3513-symbol,
+  .v3513-compact .v3513-symbol{
+    font-size:10.5px!important;
+  }
+}
+
 canvas{display:none}
 </style>
 </head>
 <body>
-<header>OCR照会 V3.5.14<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
+<header>OCR照会 V3.5.15<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
 <div class="wrap">
 <section class="camera"><video id="video" playsinline muted></video><div class="crossH"></div><div class="crossV"></div><div class="guide">型番・照会記号を十字の中心に合わせてください</div></section>
 <section class="result resultAlways waitResult" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:#333333"><div class="ruleKey">黒</div><div class="ruleName">その他</div></div></section>
@@ -1692,7 +1772,7 @@ canvas{display:none}
 <section class="panel v359-panel"><h3>チェックリスト</h3><div class="v359-viewBtns"><button id="btnViewBig" class="v359-viewBtn big active">拡大</button><button id="btnViewSmall" class="v359-viewBtn small">縮小</button></div></section>
 <button id="btnNewDelivery" class="v342-new-folder">＋ 新しい搬入フォルダ</button><div id="checkList"></div>
 <div class="small">チェックリストが0件の場合は保存しません。保存後に削除/残すを選べます。</div>
-<div class="foot"><label for="csvInput" class="fileLabel black">📁 照合CSV読込</label><button id="btnExport" class="blue">⬇ チェックリストチェックリストチェックリストCSV書き出し</button><input id="csvInput" type="file" accept=".csv,text/csv"></div>
+<div class="foot"><label for="csvInput" class="fileLabel black">📁 照合CSV読込</label><button id="btnExport" class="blue">⬇ チェックリストCSV書き出し</button><input id="csvInput" type="file" accept=".csv,text/csv"></div>
 <div class="small" id="csvInfo">初期データ：33件</div><div class="raw" id="rawBox" style="display:none">読取文字：未読取</div>
 <section class="panel"><h3>全型番を再確認</h3><span id="dataCount">33件</span></section>
 <div class="reviewHelp">基本3列＋あとで 開口サイズ / W数 / 電流値 を追加できます。</div><div id="reviewList" class="reviewBox"></div>
@@ -1702,31 +1782,14 @@ canvas{display:none}
 <script>
 const DATA_INIT=[{"model": "NNFB84665", "symbol": "E1a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84695", "symbol": "E1a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87609", "symbol": "E2a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87649", "symbol": "E2a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84005", "symbol": "E3a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84045", "symbol": "E3a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84715", "symbol": "E4a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNLG01509", "symbol": "E5a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84105", "symbol": "E6a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87009", "symbol": "E7a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87049", "symbol": "E7a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87109", "symbol": "E8a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87919", "symbol": "E9a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40356C LE1", "symbol": "X1L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40352C LE1", "symbol": "X2", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40316C LE1", "symbol": "X3L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40312C LE1", "symbol": "X4", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C", "symbol": "X5Lu", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C", "symbol": "X6u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C LE1", "symbol": "X7u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42337C LE1", "symbol": "X8u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW40315 LE1", "symbol": "X9L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42327C LE1", "symbol": "X10u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40356C LE1", "symbol": "Y1L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40366C LE1", "symbol": "Y2L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40352C LE1", "symbol": "Y3", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40362C LE1", "symbol": "Y4", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40312C LE1", "symbol": "Y5", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40322C LE1", "symbol": "Y6", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C LE1", "symbol": "Y7u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42337C LE1", "symbol": "Y8u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA01520J", "symbol": "Y9", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FSK90910K", "symbol": "自己点検リモコン", "type": "", "aperture": "", "watt": "", "currentA": ""}];
 let data=DATA_INIT.slice(),checklist=[],current=null,stream=null,worker=null,timer=null,busy=false,torchOn=false,isStopped=false,editIdx=null,readTarget="model",registerMode="manual",lastAutoKey="",lastAutoTime=0,lastQtyAddKey="",lastQtyAddTime=0,deliveries=[],activeDeliveryId=null,deliveryOpen={},folderOpen={},controlsCollapsed=false,checklistViewMode="expanded";
-let rules=[{key:"E",name:"非常照明",color:"#35d66b"},{key:"Y",name:"通路誘導灯",color:"#1d7cff"},{key:"X",name:"避難口誘導灯",color:"#ff3030"},{key:"U",name:"防湿・防雨",color:"#43cde6"},{key:"LS",name:"誘導標識",color:"#111111"},{key:"Z",name:"階段通路誘導灯",color:"#ffd31a"},{key:"中継",name:"信号装置・中継器",color:"#a3e635"},{key:"埋",name:"埋込",color:"#9747ff"},{key:"直",name:"直付",color:"#ff8200"},{key:"壁",name:"壁付",color:"#b08cff"},{key:"天",name:"天井",color:"#999999"},{key:"低",name:"低天井",color:"#7dd3fc"},{key:"中",name:"中天井",color:"#60a5fa"},{key:"高",name:"高天井",color:"#2563eb"},{key:"BH",name:"B級BH",color:"#f97316"},{key:"BL",name:"B級BL",color:"#fb923c"},{key:"C",name:"C級",color:"#facc15"},{key:"リ",name:"リモコン",color:"#ff6aa8"},{key:"器",name:"中継器",color:"#00d7c7"},{key:"他",name:"その他",color:"#333333"}];
+let rules=[{key:"E",name:"非常照明",color:"#35d66b"},{key:"Y",name:"通路誘導灯",color:"#1d7cff"},{key:"X",name:"避難口誘導灯",color:"#ff3030"},{key:"U",name:"防湿・防雨",color:"#43cde6"},{key:"LS",name:"誘導標識",color:"#111111"},{key:"Z",name:"階段通路誘導灯",color:"#ffd31a"},{key:"中継",name:"信号装置・中継器",color:"#a3e635"},{key:"埋",name:"埋込",color:"#9747ff"},{key:"直",name:"直付",color:"#ff8200"},{key:"壁",name:"壁付",color:"#b08cff"},{key:"天",name:"天井",color:"#999999"},{key:"低",name:"低天井",color:"#7dd3fc"},{key:"中",name:"中天井",color:"#60a5fa"},{key:"高",name:"高天井",color:"#2563eb"},{key:"BH",name:"B級BH",color:"#f97316"},{key:"BL",name:"B級BL",color:"#fb923c"},{key:"C",name:"C級",color:"#facc15"},{key:"リ",name:"リモコン",color:"#111111"},{key:"器",name:"中継器",color:"#00d7c7"},{key:"他",name:"その他",color:"#333333"}];
 const palette=["#ff3030","#1d7cff","#ffd31a","#ff8200","#35d66b","#9747ff","#43cde6","#7a3f18","#ffffff","#999999","#b08cff","#f97316","#fb923c","#a3e635","#60a5fa","#2563eb","#facc15","#ff6aa8","#00d7c7","#111111"];
 const esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 window.addEventListener("DOMContentLoaded",()=>{loadRules();btnFold.onclick=toggleControls;btnModelRead.onclick=()=>setReadTarget("model");btnSymbolRead.onclick=()=>setReadTarget("symbol");btnManualMode.onclick=()=>setRegisterMode("manual");btnAutoMode.onclick=()=>setRegisterMode("auto");if(typeof btnNewDelivery!=='undefined')btnNewDelivery.onclick=createNewDelivery;if(typeof btnViewBig!=='undefined')btnViewBig.onclick=()=>setChecklistMode('expanded');if(typeof btnViewSmall!=='undefined')btnViewSmall.onclick=()=>setChecklistMode('compact');if(typeof btnChecklistMode!=='undefined')btnChecklistMode.onclick=toggleChecklistMode;
 btnStart.onclick=startAuto;btnAdd.onclick=addCurrent;btnLight.onclick=toggleLight;btnRead.onclick=readOnce;btnStop.onclick=stopAll;btnExport.onclick=exportCsv;csvInput.onchange=loadCsv;btnHelp.onclick=()=>{drawer.style.display="block";renderHelp();showTab("list")};btnClose.onclick=()=>drawer.style.display="none";document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));renderChecklist();renderReviewList();});
 function setStatus(s){status.textContent=s}
 
-function v3514SymbolClass(sym,color){
-  let s=String(sym||"");
-  let cls="";
-  if(/-重複\d+$/.test(s))cls+=" v3514-dup";
-  let c=String(color||"").toLowerCase();
-  let light=false;
-  if(c==="#fff"||c==="#ffffff"||c==="white")light=true;
-  let m=c.match(/^#([0-9a-f]{6})$/i);
-  if(m){
-    let r=parseInt(m[1].slice(0,2),16),g=parseInt(m[1].slice(2,4),16),b=parseInt(m[1].slice(4,6),16);
-    let y=(r*299+g*587+b*114)/1000;
-    if(y>180)light=true;
-  }
-  if(light)cls+=" v3514-darktext";
-  else cls+=" v3514-outline";
-  return cls;
-}
-function v3514SafeColor(color){
+function v3515SafeColor(color){
   let c=String(color||"").toLowerCase();
   if(c==="#fff"||c==="#ffffff"||c==="white")return "#111";
   let m=c.match(/^#([0-9a-f]{6})$/i);
@@ -1737,6 +1800,17 @@ function v3514SafeColor(color){
   }
   return color;
 }
+function v3514SafeColor(color){return v3515SafeColor(color)}
+function v3514SymbolClass(sym,color){
+  let s=String(sym||"");
+  let cls="";
+  if(/-重複\d+$/.test(s))cls+=" v3514-dup";
+  return cls;
+}
+
+
+
+
 
 
 function v3513SafeRuleColor(color){
@@ -2123,7 +2197,7 @@ if(typeof deliveries!=="undefined"&&deliveries.length){
     arr.forEach(x=>{
       let c=categoryFor(v355BaseSymbol(x.symbol),x.type);
       let idx=checklist.indexOf(x);
-      let symColor=(typeof v3514SafeColor==="function")?v3514SafeColor(c.color):((typeof v3513SafeRuleColor==="function")?v3513SafeRuleColor(c.color):c.color);
+      let symColor=(typeof v3514SafeColor==="function")?v3515SafeColor(c.color):((typeof v3513SafeRuleColor==="function")?v3513SafeRuleColor(c.color):c.color);
       let symCls=(typeof v3514SymbolClass==="function")?v3514SymbolClass(x.symbol,c.color):"";
       h+=`<div class="v3513-card"><div class="v3513-main"><div class="v3513-model">${esc(x.model)}</div><div class="v3513-symbol v3514-symbol${symCls}" style="color:${symColor}">${esc(x.symbol)}</div><button class="qbtn minus v3513-mini-btn v3514-mini-only" data-i="${idx}" data-d="-1">－</button><div class="v3513-qtymini v3514-mini-only">${x.qty}台</div><button class="qbtn plus v3513-mini-btn v3514-mini-only" data-i="${idx}" data-d="1">＋</button><button class="v3513-mini-lock v3514-mini-only ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v3513-mini-delete v3514-mini-only" data-del="${idx}">削除</button></div><div class="v3513-actions v3514-full-actions"><button class="qbtn minus" data-i="${idx}" data-d="-10">－10</button><button class="qbtn minus" data-i="${idx}" data-d="-1">－</button><div class="v3513-qty">${x.qty}台</div><button class="qbtn plus" data-i="${idx}" data-d="1">＋</button><button class="qbtn plus" data-i="${idx}" data-d="10">＋10</button><button class="v3513-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v3513-delete" data-del="${idx}">削除</button></div></div>`;
     });
