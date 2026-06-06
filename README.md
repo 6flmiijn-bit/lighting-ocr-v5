@@ -1,3 +1,23 @@
-# OCR照会 V3.4.12
+# OCR照会 V3.5.1
 
-採用レイアウト。判定カード元サイズ、OCR枠40px/12px、チェックリスト表形式。
+Vercel用の全部入りファイルです。
+
+## ファイル
+- index.html
+- package.json
+- vercel.json
+- sample_data.csv
+- README.md
+
+## Vercel
+Build Command:
+npm run build
+
+Output Directory:
+dist
+
+## 内容
+- V3.5 safe2ベース
+- CSV書き出し時、チェックリスト0件ならCSV作成せず自動削除
+- 1件以上ならCSV保存後に削除するか確認
+- Vite不要
