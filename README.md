@@ -1,7 +1,8 @@
-# OCR照会 V3.5.17 fixed
+# OCR照会 V3.5.16
 
 ## 修正
-- Vercel Build Failed 対策
-- package.json に build script を追加
-- vercel.json を dist 出力に修正
-- sample_data.csv 同梱確認
+- 全型番を再確認の表示をV3.5.14に戻しました
+- 縮小表示の台数を中央配置に修正
+- 縮小表示の型番を大きくしました
+- チェックリストCSV書き出し表記を整理
+- 白ルール黒系統化はV3.5.15の方針を維持
