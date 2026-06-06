@@ -1,7 +1,7 @@
-OCR照会 V3.5.17
+# OCR照会 V3.5.17 fixed
 
-変更点
-- 全型番を再確認の白文字表示を廃止
-- ルール色適用へ統一
-- 白系ルールは黒系表示
-- V3.5.16のチェックリスト表示を維持
+## 修正
+- Vercel Build Failed 対策
+- package.json に build script を追加
+- vercel.json を dist 出力に修正
+- sample_data.csv 同梱確認
