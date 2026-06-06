@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCR照会 V3.5.13</title>
+<title>OCR照会 V3.5.14</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -1621,11 +1621,61 @@ input[type=file]{display:none}
   .v3513-compact .v3513-mini-delete{font-size:9px!important}
 }
 
+
+/* V3.5.14 duplicate-control fix + outlined light text */
+.v3514-expanded .v3514-mini-only{
+  display:none!important;
+}
+.v3514-compact .v3514-full-actions{
+  display:none!important;
+}
+.v3514-expanded .v3514-full-actions{
+  display:grid!important;
+}
+.v3514-compact .v3514-mini-only{
+  display:block!important;
+}
+.v3514-outline,
+.v3514-compact .v3514-symbol,
+.v3514-expanded .v3514-symbol{
+  text-shadow:
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000;
+}
+.v3514-darktext{
+  color:#111!important;
+  text-shadow:none!important;
+}
+.ruleBox.lightRule,
+.ruleBox.v3514-lightRule{
+  color:#111!important;
+  border-color:#111!important;
+  background:#e5e7eb!important;
+  text-shadow:none!important;
+}
+.ruleBox.lightRule .ruleKey,
+.ruleBox.lightRule .ruleName,
+.ruleBox.v3514-lightRule .ruleKey,
+.ruleBox.v3514-lightRule .ruleName{
+  color:#111!important;
+  text-shadow:none!important;
+}
+.v3514-compact .v3514-dup{
+  font-size:11px!important;
+}
+@media(max-width:430px){
+  .v3514-compact .v3514-dup{
+    font-size:9px!important;
+  }
+}
+
 canvas{display:none}
 </style>
 </head>
 <body>
-<header>OCR照会 V3.5.13<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
+<header>OCR照会 V3.5.14<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
 <div class="wrap">
 <section class="camera"><video id="video" playsinline muted></video><div class="crossH"></div><div class="crossV"></div><div class="guide">型番・照会記号を十字の中心に合わせてください</div></section>
 <section class="result resultAlways waitResult" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:#333333"><div class="ruleKey">黒</div><div class="ruleName">その他</div></div></section>
@@ -1642,7 +1692,7 @@ canvas{display:none}
 <section class="panel v359-panel"><h3>チェックリスト</h3><div class="v359-viewBtns"><button id="btnViewBig" class="v359-viewBtn big active">拡大</button><button id="btnViewSmall" class="v359-viewBtn small">縮小</button></div></section>
 <button id="btnNewDelivery" class="v342-new-folder">＋ 新しい搬入フォルダ</button><div id="checkList"></div>
 <div class="small">チェックリストが0件の場合は保存しません。保存後に削除/残すを選べます。</div>
-<div class="foot"><label for="csvInput" class="fileLabel black">📁 照合CSV読込</label><button id="btnExport" class="blue">⬇ チェックリストチェックリストCSV書き出し</button><input id="csvInput" type="file" accept=".csv,text/csv"></div>
+<div class="foot"><label for="csvInput" class="fileLabel black">📁 照合CSV読込</label><button id="btnExport" class="blue">⬇ チェックリストチェックリストチェックリストCSV書き出し</button><input id="csvInput" type="file" accept=".csv,text/csv"></div>
 <div class="small" id="csvInfo">初期データ：33件</div><div class="raw" id="rawBox" style="display:none">読取文字：未読取</div>
 <section class="panel"><h3>全型番を再確認</h3><span id="dataCount">33件</span></section>
 <div class="reviewHelp">基本3列＋あとで 開口サイズ / W数 / 電流値 を追加できます。</div><div id="reviewList" class="reviewBox"></div>
@@ -1658,6 +1708,36 @@ const esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 window.addEventListener("DOMContentLoaded",()=>{loadRules();btnFold.onclick=toggleControls;btnModelRead.onclick=()=>setReadTarget("model");btnSymbolRead.onclick=()=>setReadTarget("symbol");btnManualMode.onclick=()=>setRegisterMode("manual");btnAutoMode.onclick=()=>setRegisterMode("auto");if(typeof btnNewDelivery!=='undefined')btnNewDelivery.onclick=createNewDelivery;if(typeof btnViewBig!=='undefined')btnViewBig.onclick=()=>setChecklistMode('expanded');if(typeof btnViewSmall!=='undefined')btnViewSmall.onclick=()=>setChecklistMode('compact');if(typeof btnChecklistMode!=='undefined')btnChecklistMode.onclick=toggleChecklistMode;
 btnStart.onclick=startAuto;btnAdd.onclick=addCurrent;btnLight.onclick=toggleLight;btnRead.onclick=readOnce;btnStop.onclick=stopAll;btnExport.onclick=exportCsv;csvInput.onchange=loadCsv;btnHelp.onclick=()=>{drawer.style.display="block";renderHelp();showTab("list")};btnClose.onclick=()=>drawer.style.display="none";document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));renderChecklist();renderReviewList();});
 function setStatus(s){status.textContent=s}
+
+function v3514SymbolClass(sym,color){
+  let s=String(sym||"");
+  let cls="";
+  if(/-重複\d+$/.test(s))cls+=" v3514-dup";
+  let c=String(color||"").toLowerCase();
+  let light=false;
+  if(c==="#fff"||c==="#ffffff"||c==="white")light=true;
+  let m=c.match(/^#([0-9a-f]{6})$/i);
+  if(m){
+    let r=parseInt(m[1].slice(0,2),16),g=parseInt(m[1].slice(2,4),16),b=parseInt(m[1].slice(4,6),16);
+    let y=(r*299+g*587+b*114)/1000;
+    if(y>180)light=true;
+  }
+  if(light)cls+=" v3514-darktext";
+  else cls+=" v3514-outline";
+  return cls;
+}
+function v3514SafeColor(color){
+  let c=String(color||"").toLowerCase();
+  if(c==="#fff"||c==="#ffffff"||c==="white")return "#111";
+  let m=c.match(/^#([0-9a-f]{6})$/i);
+  if(m){
+    let r=parseInt(m[1].slice(0,2),16),g=parseInt(m[1].slice(2,4),16),b=parseInt(m[1].slice(4,6),16);
+    let y=(r*299+g*587+b*114)/1000;
+    if(y>180)return "#111";
+  }
+  return color;
+}
+
 
 function v3513SafeRuleColor(color){
   let c=String(color||"").toLowerCase();
@@ -2005,7 +2085,7 @@ let cat=categoryFor(hit.symbol,hit.type);
 current={model:hit.model,symbol:displaySymbol,type:hit.type,missing:false};
 result.style.borderColor=cat.color;
 v36SetResultState("okResult");
-result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card okResult"><div class="v35-statusText">✅ 照合一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol">${esc(displaySymbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.model)} / <span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div></div></div><div class="ruleBox${v356RuleClass(cat.color)}" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
+result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card okResult"><div class="v35-statusText">✅ 照合一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol">${esc(displaySymbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.model)} / <span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div></div></div><div class="ruleBox${v356RuleClass(cat.color)}" style="color:${v3514SafeColor(cat.color)}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
 setStatus(hit.model+" → "+displaySymbol)}
 function showSymbolHit(hit,score,read){
 let displaySymbol=v355MakeUniqueSymbol(hit.model,hit.symbol);
@@ -2013,7 +2093,7 @@ let cat=categoryFor(hit.symbol,hit.type);
 current={model:hit.model,symbol:displaySymbol,type:hit.type,missing:false};
 result.style.borderColor=cat.color;
 v36SetResultState("okResult");
-result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card okResult"><div class="v35-statusText">✅ 照会記号一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol">${esc(displaySymbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.symbol)} / <span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div><div class="specBox"><div class="spec"><small>開口</small>${esc(hit.aperture||"未入力")}</div><div class="spec"><small>W数</small>${esc(hit.watt||"未入力")}</div><div class="spec"><small>電流</small>${esc(hit.currentA||"未入力")}</div><div class="spec"><small>型番</small>${esc(hit.model||"")}</div></div></div></div><div class="ruleBox${v356RuleClass(cat.color)}" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
+result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card okResult"><div class="v35-statusText">✅ 照会記号一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol">${esc(displaySymbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.symbol)} / <span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div><div class="specBox"><div class="spec"><small>開口</small>${esc(hit.aperture||"未入力")}</div><div class="spec"><small>W数</small>${esc(hit.watt||"未入力")}</div><div class="spec"><small>電流</small>${esc(hit.currentA||"未入力")}</div><div class="spec"><small>型番</small>${esc(hit.model||"")}</div></div></div></div><div class="ruleBox${v356RuleClass(cat.color)}" style="color:${v3514SafeColor(cat.color)}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
 setStatus("照会一致："+displaySymbol)}
 function showMissing(cand,raw){
 let shown=(cand&&cand!=="未読取")?String(cand).slice(0,24):safeOcrText(raw);
@@ -2031,7 +2111,7 @@ if(typeof deliveries!=="undefined"&&deliveries.length===0&&checklist.length>0){
   deliveryOpen[id]=true;
   checklist.forEach(x=>{if(!x.deliveryId)x.deliveryId=id});
 }
-let modeClass=checklistViewMode==="compact"?"v3513-compact":"v3513-expanded";
+let modeClass=checklistViewMode==="compact"?"v3513-compact v3514-compact":"v3513-expanded v3514-expanded";
 let h=`<div class="${modeClass}">`;
 if(typeof deliveries!=="undefined"&&deliveries.length){
   deliveries.forEach(del=>{
@@ -2043,8 +2123,9 @@ if(typeof deliveries!=="undefined"&&deliveries.length){
     arr.forEach(x=>{
       let c=categoryFor(v355BaseSymbol(x.symbol),x.type);
       let idx=checklist.indexOf(x);
-      let symColor=(typeof v3513SafeRuleColor==="function")?v3513SafeRuleColor(c.color):c.color;
-      h+=`<div class="v3513-card"><div class="v3513-main"><div class="v3513-model">${esc(x.model)}</div><div class="v3513-symbol" style="color:${symColor}">${esc(x.symbol)}</div><button class="qbtn minus v3513-mini-btn" data-i="${idx}" data-d="-1">－</button><div class="v3513-qtymini">${x.qty}台</div><button class="qbtn plus v3513-mini-btn" data-i="${idx}" data-d="1">＋</button><button class="v3513-mini-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v3513-mini-delete" data-del="${idx}">削除</button></div><div class="v3513-actions"><button class="qbtn minus" data-i="${idx}" data-d="-10">－10</button><button class="qbtn minus" data-i="${idx}" data-d="-1">－</button><div class="v3513-qty">${x.qty}台</div><button class="qbtn plus" data-i="${idx}" data-d="1">＋</button><button class="qbtn plus" data-i="${idx}" data-d="10">＋10</button><button class="v3513-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v3513-delete" data-del="${idx}">削除</button></div></div>`;
+      let symColor=(typeof v3514SafeColor==="function")?v3514SafeColor(c.color):((typeof v3513SafeRuleColor==="function")?v3513SafeRuleColor(c.color):c.color);
+      let symCls=(typeof v3514SymbolClass==="function")?v3514SymbolClass(x.symbol,c.color):"";
+      h+=`<div class="v3513-card"><div class="v3513-main"><div class="v3513-model">${esc(x.model)}</div><div class="v3513-symbol v3514-symbol${symCls}" style="color:${symColor}">${esc(x.symbol)}</div><button class="qbtn minus v3513-mini-btn v3514-mini-only" data-i="${idx}" data-d="-1">－</button><div class="v3513-qtymini v3514-mini-only">${x.qty}台</div><button class="qbtn plus v3513-mini-btn v3514-mini-only" data-i="${idx}" data-d="1">＋</button><button class="v3513-mini-lock v3514-mini-only ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v3513-mini-delete v3514-mini-only" data-del="${idx}">削除</button></div><div class="v3513-actions v3514-full-actions"><button class="qbtn minus" data-i="${idx}" data-d="-10">－10</button><button class="qbtn minus" data-i="${idx}" data-d="-1">－</button><div class="v3513-qty">${x.qty}台</div><button class="qbtn plus" data-i="${idx}" data-d="1">＋</button><button class="qbtn plus" data-i="${idx}" data-d="10">＋10</button><button class="v3513-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v3513-delete" data-del="${idx}">削除</button></div></div>`;
     });
     h+=`</div></div>`;
   });
@@ -2058,6 +2139,7 @@ checkList.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{let i=+b.datase
 checkList.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{let i=+b.dataset.l;checklist[i].locked=!checklist[i].locked;renderChecklist()});
 checkList.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>(typeof v410DeleteItem==='function'?v410DeleteItem:deleteChecklistItem)(+b.dataset.del));
 }
+
 
 
 
