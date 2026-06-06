@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCR照会 V3.5.12</title>
+<title>OCR照会 V3.5.13</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -1403,11 +1403,229 @@ input[type=file]{display:none}
   .v3512-compact .v3512-symbol{font-size:16px}
 }
 
+
+/* V3.5.13 real final */
+.result.okResult{
+  background:#d9fbe3!important;
+  border-color:#168a2f!important;
+  color:#063b16!important;
+}
+.result.okResult .v342-result-card{
+  background:#d9fbe3!important;
+  border:0!important;
+  box-shadow:none!important;
+  color:#063b16!important;
+}
+.result.waitResult,
+.result.ngResult,
+.result.readingResult{
+  background:#f3f4f6!important;
+  border-color:#9ca3af!important;
+  color:#111827!important;
+}
+.result.waitResult .v342-result-card,
+.result.ngResult .v342-result-card,
+.result.readingResult .v342-result-card{
+  background:#f3f4f6!important;
+  border:0!important;
+  box-shadow:none!important;
+  color:#111827!important;
+}
+.result.okResult .v342-symbol,
+.result.okResult .v342-model{
+  color:#063b16!important;
+  background:transparent!important;
+}
+.ruleBox.lightRule{
+  color:#111!important;
+  border-color:#111!important;
+  background:#e5e7eb!important;
+}
+.ruleBox.lightRule .ruleKey,
+.ruleBox.lightRule .ruleName{
+  color:#111!important;
+}
+.v359-viewBtn,
+.v359-viewBtn.big,
+.v359-viewBtn.small{
+  color:#fff!important;
+  text-shadow:none!important;
+}
+.v359-viewBtn.big{background:#b91c1c!important}
+.v359-viewBtn.small{background:#1d4ed8!important}
+.v359-viewBtn.active{
+  outline:3px solid #fff!important;
+  box-shadow:0 0 0 2px #111 inset!important;
+}
+
+/* expanded */
+.v3513-expanded .v3513-card{
+  background:#fff6ee;
+  color:#111;
+  border-top:1px solid #c49a7b;
+  padding:10px;
+}
+.v3513-expanded .v3513-main{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(95px,140px);
+  gap:8px;
+  align-items:start;
+}
+.v3513-expanded .v3513-model{
+  font-size:32px;
+  line-height:1.08;
+  font-weight:1000;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+.v3513-expanded .v3513-symbol{
+  font-size:31px;
+  line-height:1.05;
+  font-weight:1000;
+  text-align:right;
+  white-space:normal;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+.v3513-expanded .v3513-qtymini{display:none!important}
+.v3513-expanded .v3513-actions{
+  display:grid;
+  grid-template-columns:1fr .85fr 64px .85fr 1fr 58px 66px;
+  gap:5px;
+  align-items:center;
+  margin-top:8px;
+  width:100%;
+}
+.v3513-expanded .v3513-actions button{
+  min-height:48px!important;
+  font-size:15px!important;
+  padding:5px 2px!important;
+  border-radius:8px!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+}
+.v3513-expanded .v3513-qty{
+  min-height:48px;
+  font-size:18px;
+  font-weight:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border:1px solid #8a5a3f;
+  border-radius:8px;
+  color:#5b3423;
+  white-space:nowrap;
+}
+
+/* compact: one line, no -10/+10 */
+.v3513-compact .v3513-card{
+  background:#fff6ee;
+  color:#111;
+  border-top:1px solid #c49a7b;
+  padding:5px 6px;
+  overflow:hidden;
+}
+.v3513-compact .v3513-main{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(58px,86px) 26px 48px 26px 40px 46px;
+  gap:3px;
+  align-items:center;
+  width:100%;
+}
+.v3513-compact .v3513-model{
+  font-size:11px;
+  line-height:1.05;
+  font-weight:1000;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  max-height:2.2em;
+  overflow:hidden;
+}
+.v3513-compact .v3513-symbol{
+  font-size:15px;
+  line-height:1;
+  font-weight:1000;
+  text-align:right;
+  white-space:nowrap;
+  overflow:visible;
+  text-overflow:clip;
+}
+.v3513-compact .v3513-qtymini{
+  min-height:30px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border:1px solid #8a5a3f;
+  border-radius:6px;
+  color:#5b3423;
+  font-size:11px;
+  font-weight:1000;
+  white-space:nowrap;
+}
+.v3513-compact .v3513-mini-btn,
+.v3513-compact .v3513-mini-lock,
+.v3513-compact .v3513-mini-delete{
+  display:block!important;
+  min-height:30px!important;
+  font-size:10px!important;
+  padding:1px!important;
+  border-radius:6px!important;
+  min-width:0!important;
+}
+.v3513-compact .v3513-mini-delete{
+  background:#9b3f34!important;
+  color:#fff!important;
+  border:1px solid #6b241d!important;
+}
+.v3513-compact .v3513-mini-lock{
+  background:#fff!important;
+  color:#111!important;
+  border:1px solid #8a5a3f!important;
+}
+.v3513-compact .v3513-actions{display:none!important}
+.v3513-lock{
+  background:#fff;
+  color:#111;
+  border:1px solid #8a5a3f;
+}
+.v3513-lock.locked{
+  color:#ffd400!important;
+  background:#5b3423!important;
+}
+.v3513-delete{
+  background:#9b3f34;
+  color:#fff;
+  border:1px solid #6b241d;
+}
+@media(max-width:430px){
+  .v3513-expanded .v3513-model{font-size:28px}
+  .v3513-expanded .v3513-symbol{font-size:28px}
+  .v3513-expanded .v3513-actions{
+    grid-template-columns:52px 42px 50px 42px 52px 46px 54px;
+    gap:4px;
+  }
+  .v3513-expanded .v3513-actions button{font-size:13px!important}
+  .v3513-expanded .v3513-qty{font-size:15px}
+  .v3513-compact .v3513-main{
+    grid-template-columns:minmax(0,1fr) 54px 23px 42px 23px 34px 42px;
+    gap:2px;
+  }
+  .v3513-compact .v3513-model{font-size:10px}
+  .v3513-compact .v3513-symbol{font-size:13px}
+  .v3513-compact .v3513-qtymini{font-size:10px}
+  .v3513-compact .v3513-mini-btn,
+  .v3513-compact .v3513-mini-lock,
+  .v3513-compact .v3513-mini-delete{font-size:9px!important}
+}
+
 canvas{display:none}
 </style>
 </head>
 <body>
-<header>OCR照会 V3.5.12<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
+<header>OCR照会 V3.5.13<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
 <div class="wrap">
 <section class="camera"><video id="video" playsinline muted></video><div class="crossH"></div><div class="crossV"></div><div class="guide">型番・照会記号を十字の中心に合わせてください</div></section>
 <section class="result resultAlways waitResult" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:#333333"><div class="ruleKey">黒</div><div class="ruleName">その他</div></div></section>
@@ -1424,7 +1642,7 @@ canvas{display:none}
 <section class="panel v359-panel"><h3>チェックリスト</h3><div class="v359-viewBtns"><button id="btnViewBig" class="v359-viewBtn big active">拡大</button><button id="btnViewSmall" class="v359-viewBtn small">縮小</button></div></section>
 <button id="btnNewDelivery" class="v342-new-folder">＋ 新しい搬入フォルダ</button><div id="checkList"></div>
 <div class="small">チェックリストが0件の場合は保存しません。保存後に削除/残すを選べます。</div>
-<div class="foot"><label for="csvInput" class="fileLabel black">📁 CSV読込</label><button id="btnExport" class="blue">⬇ チェックリストCSV書き出し</button><input id="csvInput" type="file" accept=".csv,text/csv"></div>
+<div class="foot"><label for="csvInput" class="fileLabel black">📁 照合CSV読込</label><button id="btnExport" class="blue">⬇ チェックリストチェックリストCSV書き出し</button><input id="csvInput" type="file" accept=".csv,text/csv"></div>
 <div class="small" id="csvInfo">初期データ：33件</div><div class="raw" id="rawBox" style="display:none">読取文字：未読取</div>
 <section class="panel"><h3>全型番を再確認</h3><span id="dataCount">33件</span></section>
 <div class="reviewHelp">基本3列＋あとで 開口サイズ / W数 / 電流値 を追加できます。</div><div id="reviewList" class="reviewBox"></div>
@@ -1440,6 +1658,19 @@ const esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 window.addEventListener("DOMContentLoaded",()=>{loadRules();btnFold.onclick=toggleControls;btnModelRead.onclick=()=>setReadTarget("model");btnSymbolRead.onclick=()=>setReadTarget("symbol");btnManualMode.onclick=()=>setRegisterMode("manual");btnAutoMode.onclick=()=>setRegisterMode("auto");if(typeof btnNewDelivery!=='undefined')btnNewDelivery.onclick=createNewDelivery;if(typeof btnViewBig!=='undefined')btnViewBig.onclick=()=>setChecklistMode('expanded');if(typeof btnViewSmall!=='undefined')btnViewSmall.onclick=()=>setChecklistMode('compact');if(typeof btnChecklistMode!=='undefined')btnChecklistMode.onclick=toggleChecklistMode;
 btnStart.onclick=startAuto;btnAdd.onclick=addCurrent;btnLight.onclick=toggleLight;btnRead.onclick=readOnce;btnStop.onclick=stopAll;btnExport.onclick=exportCsv;csvInput.onchange=loadCsv;btnHelp.onclick=()=>{drawer.style.display="block";renderHelp();showTab("list")};btnClose.onclick=()=>drawer.style.display="none";document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));renderChecklist();renderReviewList();});
 function setStatus(s){status.textContent=s}
+
+function v3513SafeRuleColor(color){
+  let c=String(color||"").toLowerCase();
+  if(c==="#fff"||c==="#ffffff"||c==="white")return "#111";
+  let m=c.match(/^#([0-9a-f]{6})$/i);
+  if(m){
+    let r=parseInt(m[1].slice(0,2),16),g=parseInt(m[1].slice(2,4),16),b=parseInt(m[1].slice(4,6),16);
+    let y=(r*299+g*587+b*114)/1000;
+    if(y>180)return "#111";
+  }
+  return color;
+}
+
 
 function v3510HandleRuleCsvFile(e){
   let f=e.target.files[0];
@@ -1800,7 +2031,7 @@ if(typeof deliveries!=="undefined"&&deliveries.length===0&&checklist.length>0){
   deliveryOpen[id]=true;
   checklist.forEach(x=>{if(!x.deliveryId)x.deliveryId=id});
 }
-let modeClass=checklistViewMode==="compact"?"v3512-compact":"v3512-expanded";
+let modeClass=checklistViewMode==="compact"?"v3513-compact":"v3513-expanded";
 let h=`<div class="${modeClass}">`;
 if(typeof deliveries!=="undefined"&&deliveries.length){
   deliveries.forEach(del=>{
@@ -1812,8 +2043,8 @@ if(typeof deliveries!=="undefined"&&deliveries.length){
     arr.forEach(x=>{
       let c=categoryFor(v355BaseSymbol(x.symbol),x.type);
       let idx=checklist.indexOf(x);
-      let symColor=(typeof v356RuleClass==="function"&&v356RuleClass(c.color))?'#111':c.color;
-      h+=`<div class="v3512-card"><div class="v3512-main"><div class="v3512-model">${esc(x.model)}</div><div class="v3512-symbol" style="color:${symColor}">${esc(x.symbol)}</div><div class="v3512-qtymini">${x.qty}台</div></div><div class="v3512-actions"><button class="qbtn minus" data-i="${idx}" data-d="-10">－10</button><button class="qbtn minus" data-i="${idx}" data-d="-1">－</button><div class="v3512-qty">${x.qty}台</div><button class="qbtn plus" data-i="${idx}" data-d="1">＋</button><button class="qbtn plus" data-i="${idx}" data-d="10">＋10</button><button class="v3512-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v3512-delete" data-del="${idx}">削除</button></div></div>`;
+      let symColor=(typeof v3513SafeRuleColor==="function")?v3513SafeRuleColor(c.color):c.color;
+      h+=`<div class="v3513-card"><div class="v3513-main"><div class="v3513-model">${esc(x.model)}</div><div class="v3513-symbol" style="color:${symColor}">${esc(x.symbol)}</div><button class="qbtn minus v3513-mini-btn" data-i="${idx}" data-d="-1">－</button><div class="v3513-qtymini">${x.qty}台</div><button class="qbtn plus v3513-mini-btn" data-i="${idx}" data-d="1">＋</button><button class="v3513-mini-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v3513-mini-delete" data-del="${idx}">削除</button></div><div class="v3513-actions"><button class="qbtn minus" data-i="${idx}" data-d="-10">－10</button><button class="qbtn minus" data-i="${idx}" data-d="-1">－</button><div class="v3513-qty">${x.qty}台</div><button class="qbtn plus" data-i="${idx}" data-d="1">＋</button><button class="qbtn plus" data-i="${idx}" data-d="10">＋10</button><button class="v3513-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v3513-delete" data-del="${idx}">削除</button></div></div>`;
     });
     h+=`</div></div>`;
   });
@@ -1827,6 +2058,7 @@ checkList.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{let i=+b.datase
 checkList.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{let i=+b.dataset.l;checklist[i].locked=!checklist[i].locked;renderChecklist()});
 checkList.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>(typeof v410DeleteItem==='function'?v410DeleteItem:deleteChecklistItem)(+b.dataset.del));
 }
+
 
 
 
