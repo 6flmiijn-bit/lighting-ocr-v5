@@ -1,4 +1,11 @@
 {
-  "name": "lighting-ocr-v3-5-1",
-  "version": "3.5.1"
+  "name": "lighting-ocr-v5",
+  "version": "3.5.1",
+  "private": true,
+  "scripts": {
+    "build": "mkdir -p dist && cp index.html dist/index.html"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
 }
