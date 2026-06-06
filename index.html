@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCR照会 V3.5.18</title>
+<title>OCR照会 V3.5.19</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -1791,14 +1791,11 @@ input[type=file]{display:none}
   }
 }
 
-
-.reviewSym{background:transparent!important;border:none!important;box-shadow:none!important;}
-
 canvas{display:none}
 </style>
 </head>
 <body>
-<header>OCR照会 V3.5.18<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
+<header>OCR照会 V3.5.19<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
 <div class="wrap">
 <section class="camera"><video id="video" playsinline muted></video><div class="crossH"></div><div class="crossV"></div><div class="guide">型番・照会記号を十字の中心に合わせてください</div></section>
 <section class="result resultAlways waitResult" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:#333333"><div class="ruleKey">黒</div><div class="ruleName">その他</div></div></section>
@@ -1831,6 +1828,31 @@ const esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 window.addEventListener("DOMContentLoaded",()=>{loadRules();btnFold.onclick=toggleControls;btnModelRead.onclick=()=>setReadTarget("model");btnSymbolRead.onclick=()=>setReadTarget("symbol");btnManualMode.onclick=()=>setRegisterMode("manual");btnAutoMode.onclick=()=>setRegisterMode("auto");if(typeof btnNewDelivery!=='undefined')btnNewDelivery.onclick=createNewDelivery;if(typeof btnViewBig!=='undefined')btnViewBig.onclick=()=>setChecklistMode('expanded');if(typeof btnViewSmall!=='undefined')btnViewSmall.onclick=()=>setChecklistMode('compact');if(typeof btnChecklistMode!=='undefined')btnChecklistMode.onclick=toggleChecklistMode;
 btnStart.onclick=startAuto;btnAdd.onclick=addCurrent;btnLight.onclick=toggleLight;btnRead.onclick=readOnce;btnStop.onclick=stopAll;btnExport.onclick=exportCsv;csvInput.onchange=loadCsv;btnHelp.onclick=()=>{drawer.style.display="block";renderHelp();showTab("list")};btnClose.onclick=()=>drawer.style.display="none";document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));renderChecklist();renderReviewList();});
 function setStatus(s){status.textContent=s}
+
+function parseCsvLineV3519(line){
+  let out=[],cur="",q=false;
+  for(let i=0;i<line.length;i++){
+    let ch=line[i],nx=line[i+1];
+    if(ch=='"'&&q&&nx=='"'){cur+='"';i++}
+    else if(ch=='"')q=!q;
+    else if(ch==","&&!q){out.push(cur);cur=""}
+    else cur+=ch;
+  }
+  out.push(cur);
+  return out.map(x=>String(x||"").trim());
+}
+function normalizeHeaderV3519(s){
+  return String(s||"").replace(/^\uFEFF/,"").replace(/\s/g,"").trim();
+}
+function findColV3519(headers,names){
+  let hs=headers.map(normalizeHeaderV3519);
+  for(const n of names){
+    let idx=hs.indexOf(normalizeHeaderV3519(n));
+    if(idx>=0)return idx;
+  }
+  return -1;
+}
+
 
 function v3515SafeColor(color){
   let c=String(color||"").toLowerCase();
@@ -2301,7 +2323,67 @@ setTimeout(()=>{
   }
 },300);
 }
-function loadCsv(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{let rows=parseCsv(r.result);if(rows.length){data=rows;csvInfo.textContent="読込済み："+f.name+" / "+rows.length+"件";renderReviewList();alert(rows.length+"件読み込みました");setStatus("CSV読込："+rows.length+"件")}else alert("CSV読込失敗：型番 と 照会記号/照会記号 の列が必要です")};r.readAsText(f,"utf-8")}
+function loadCsv(e){
+let f=e.target.files[0];
+if(!f)return;
+let r=new FileReader();
+r.onload=()=>{
+  try{
+    let text=String(r.result||"").replace(/\r/g,"");
+    let lines=text.split("\n").filter(x=>x.trim().length>0);
+    if(!lines.length)throw new Error("CSVが空です");
+
+    let headers=parseCsvLineV3519(lines[0]);
+    let iModel=findColV3519(headers,["型番","品番","器具型番"]);
+    let iSymbol=findColV3519(headers,["照会記号","紹介記号","照会番号","記号"]);
+    let iType=findColV3519(headers,["器具種別","種別","分類"]);
+    let iAper=findColV3519(headers,["開口サイズ","開口","穴径"]);
+    let iWatt=findColV3519(headers,["W数","ワット","消費電力"]);
+    let iCur=findColV3519(headers,["電流値","電流","A"]);
+
+    if(iModel<0||iSymbol<0){
+      alert("CSV読込失敗：型番 と 照会記号/紹介記号 の列が必要です");
+      setStatus("CSV読込失敗");
+      return;
+    }
+
+    let rows=[];
+    for(let li=1;li<lines.length;li++){
+      let c=parseCsvLineV3519(lines[li]);
+      let model=String(c[iModel]||"").trim();
+      let symbol=String(c[iSymbol]||"").trim();
+      if(!model||!symbol)continue;
+      rows.push({
+        model:model,
+        symbol:symbol,
+        type:iType>=0?String(c[iType]||"").trim():"",
+        aperture:iAper>=0?String(c[iAper]||"").trim():"",
+        watt:iWatt>=0?String(c[iWatt]||"").trim():"",
+        currentA:iCur>=0?String(c[iCur]||"").trim():""
+      });
+    }
+
+    if(!rows.length){
+      alert("CSV読込失敗：有効なデータ行がありません");
+      setStatus("CSV読込失敗");
+      return;
+    }
+
+    data=rows;
+    if(typeof renderReviewList==="function")renderReviewList();
+    if(typeof renderPalette==="function")renderPalette();
+    if(typeof csvInfo!=="undefined")csvInfo.textContent=rows.length+"件読み込みました";
+    setStatus(rows.length+"件読み込みました");
+    alert(rows.length+"件読み込みました");
+  }catch(err){
+    console.error(err);
+    alert("CSV読込失敗："+err.message);
+    setStatus("CSV読込失敗");
+  }
+};
+r.onerror=()=>{alert("CSV読込失敗：ファイルを読めません");setStatus("CSV読込失敗")};
+r.readAsText(f,"utf-8");
+}
 function parseCsv(t){let lines=t.replace(/\\r/g,"").split("\\n").filter(x=>x.trim());if(lines.length<2)return[];let head=splitCsv(lines[0]).map(x=>x.trim().replace(/^\\ufeff/,""));return lines.slice(1).map(line=>{let cols=splitCsv(line),row={};head.forEach((k,i)=>row[k]=cols[i]||"");let model=row["型番"]||row["器具型番"]||row["model"]||"",symbol=row["照会記号"]||row["照会記号"]||row["記号"]||"",type=row["器具種別"]||row["種別"]||row["type"]||"";return{model:String(model).trim(),symbol:String(symbol).trim(),type:String(type).trim(),aperture:String(row["開口サイズ"]||row["開口"]||"").trim(),watt:String(row["W数"]||row["消費電力"]||row["W"]||"").trim(),currentA:String(row["電流値"]||row["電流"]||row["A"]||"").trim()}}).filter(r=>r.model&&r.symbol)}
 function splitCsv(line){let out=[],cur="",q=false;for(let i=0;i<line.length;i++){let ch=line[i],nx=line[i+1];if(ch=='"'&&q&&nx=='"'){cur+='"';i++}else if(ch=='"')q=!q;else if(ch==","&&!q){out.push(cur);cur=""}else cur+=ch}out.push(cur);return out}
 </script>
