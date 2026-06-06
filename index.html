@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCR照会 V3.5.8</title>
+<title>OCR照会 V3.5.9</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -931,11 +931,161 @@ input[type=file]{display:none}
   .v357-expanded .v356-qty{font-size:17px!important}
 }
 
+
+/* V3.5.9 checklist title buttons + rule CSV */
+.panel.v359-panel{
+  gap:6px;
+}
+.v359-panel h3{
+  flex:1;
+}
+.v359-viewBtns{
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+.v359-viewBtn{
+  padding:7px 10px!important;
+  border-radius:9px!important;
+  font-size:14px!important;
+  min-width:56px;
+}
+.v359-viewBtn.big{
+  background:#b91c1c!important;
+}
+.v359-viewBtn.small{
+  background:#1d4ed8!important;
+}
+.v359-viewBtn.active{
+  outline:3px solid #fff;
+  box-shadow:0 0 0 2px #111 inset;
+}
+.v359-expanded .v356-card{
+  padding:10px;
+}
+.v359-expanded .v356-top{
+  display:grid!important;
+  grid-template-columns:1fr 128px!important;
+  gap:8px!important;
+  align-items:start!important;
+}
+.v359-expanded .v356-model{
+  font-size:24px!important;
+  line-height:1.14!important;
+  font-weight:1000!important;
+  word-break:break-word!important;
+  overflow-wrap:anywhere!important;
+}
+.v359-expanded .v356-symbol{
+  font-size:34px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  text-align:right!important;
+  color:#111!important;
+}
+.v359-expanded .v356-qtyline{
+  display:grid!important;
+  grid-template-columns:64px 48px 56px 48px 64px 52px 58px!important;
+  gap:5px!important;
+  align-items:center!important;
+}
+.v359-expanded .v356-qtyline button{
+  min-height:48px!important;
+  font-size:16px!important;
+  padding:6px 2px!important;
+}
+.v359-expanded .v356-qty{
+  min-height:48px!important;
+  font-size:18px!important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.v359-compact .v356-card{
+  padding:6px;
+}
+.v359-compact .v356-top{
+  display:grid!important;
+  grid-template-columns:1fr 92px!important;
+  gap:6px!important;
+  align-items:start!important;
+}
+.v359-compact .v356-model{
+  font-size:14px!important;
+  line-height:1.12!important;
+  word-break:break-word!important;
+  overflow-wrap:anywhere!important;
+}
+.v359-compact .v356-symbol{
+  font-size:22px!important;
+  line-height:1.05!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  text-align:right!important;
+}
+.v359-compact .v356-qtyline{
+  display:grid!important;
+  grid-template-columns:56px 40px 50px 40px 56px 46px 52px!important;
+  gap:4px!important;
+  margin-top:6px!important;
+}
+.v359-compact .v356-qtyline button{
+  min-height:40px!important;
+  font-size:13px!important;
+  padding:4px 1px!important;
+}
+.v359-compact .v356-qty{
+  min-height:40px!important;
+  font-size:15px!important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.ruleBox.lightRule{
+  color:#111!important;
+  border-color:#111!important;
+  background:#e5e7eb!important;
+}
+.ruleBox.lightRule .ruleKey,
+.ruleBox.lightRule .ruleName{
+  color:#111!important;
+}
+.ruleCsvBox textarea{
+  width:100%;
+  min-height:150px;
+  border:1px solid #8a5a3f;
+  border-radius:8px;
+  padding:8px;
+  font-family:monospace;
+  font-size:12px;
+  white-space:pre;
+}
+.ruleCsvBtns{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:6px;
+  margin-top:6px;
+}
+.ruleCsvBtns button{
+  font-size:13px!important;
+  padding:10px 4px!important;
+}
+@media(max-width:430px){
+  .v359-expanded .v356-top{grid-template-columns:1fr 112px!important}
+  .v359-expanded .v356-model{font-size:22px!important}
+  .v359-expanded .v356-symbol{font-size:30px!important}
+  .v359-expanded .v356-qtyline{grid-template-columns:56px 42px 50px 42px 56px 46px 52px!important;gap:4px!important}
+  .v359-expanded .v356-qtyline button{font-size:14px!important}
+}
+
 canvas{display:none}
 </style>
 </head>
 <body>
-<header>OCR照会 V3.5.8<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
+<header>OCR照会 V3.5.9<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
 <div class="wrap">
 <section class="camera"><video id="video" playsinline muted></video><div class="crossH"></div><div class="crossV"></div><div class="guide">型番・照会記号を十字の中心に合わせてください</div></section>
 <section class="result resultAlways waitResult" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:#333333"><div class="ruleKey">黒</div><div class="ruleName">その他</div></div></section>
@@ -949,8 +1099,8 @@ canvas{display:none}
 <div id="modeNote" class="note">現在：手動登録モード</div>
 <div class="status"><span class="dot"></span><span id="status">待機中</span></div>
 </div>
-<section class="panel"><h3>チェックリスト</h3></section>
-<button id="btnNewDelivery" class="v342-new-folder">＋ 新しい搬入フォルダ</button><button id="btnChecklistMode" class="v357-modebtn">表示切替：拡大表示</button><div id="checkList"></div>
+<section class="panel v359-panel"><h3>チェックリスト</h3><div class="v359-viewBtns"><button id="btnViewBig" class="v359-viewBtn big active">拡大</button><button id="btnViewSmall" class="v359-viewBtn small">縮小</button></div></section>
+<button id="btnNewDelivery" class="v342-new-folder">＋ 新しい搬入フォルダ</button><div id="checkList"></div>
 <div class="small">チェックリストが0件の場合は保存しません。保存後に削除/残すを選べます。</div>
 <div class="foot"><label for="csvInput" class="fileLabel black">📁 CSV読込</label><button id="btnExport" class="blue">⬇ CSV書き出し</button><input id="csvInput" type="file" accept=".csv,text/csv"></div>
 <div class="small" id="csvInfo">初期データ：33件</div><div class="raw" id="rawBox" style="display:none">読取文字：未読取</div>
@@ -965,9 +1115,71 @@ let data=DATA_INIT.slice(),checklist=[],current=null,stream=null,worker=null,tim
 let rules=[{key:"E",name:"非常照明",color:"#35d66b"},{key:"Y",name:"通路誘導灯",color:"#1d7cff"},{key:"X",name:"避難口誘導灯",color:"#ff3030"},{key:"U",name:"防湿・防雨",color:"#43cde6"},{key:"LS",name:"誘導標識",color:"#111111"},{key:"Z",name:"階段通路誘導灯",color:"#ffd31a"},{key:"中継",name:"信号装置・中継器",color:"#a3e635"},{key:"埋",name:"埋込",color:"#9747ff"},{key:"直",name:"直付",color:"#ff8200"},{key:"壁",name:"壁付",color:"#b08cff"},{key:"天",name:"天井",color:"#999999"},{key:"低",name:"低天井",color:"#7dd3fc"},{key:"中",name:"中天井",color:"#60a5fa"},{key:"高",name:"高天井",color:"#2563eb"},{key:"BH",name:"B級BH",color:"#f97316"},{key:"BL",name:"B級BL",color:"#fb923c"},{key:"C",name:"C級",color:"#facc15"},{key:"リ",name:"リモコン",color:"#ff6aa8"},{key:"器",name:"中継器",color:"#00d7c7"},{key:"他",name:"その他",color:"#333333"}];
 const palette=["#ff3030","#1d7cff","#ffd31a","#ff8200","#35d66b","#9747ff","#43cde6","#7a3f18","#ffffff","#999999","#b08cff","#f97316","#fb923c","#a3e635","#60a5fa","#2563eb","#facc15","#ff6aa8","#00d7c7","#111111"];
 const esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-window.addEventListener("DOMContentLoaded",()=>{loadRules();btnFold.onclick=toggleControls;btnModelRead.onclick=()=>setReadTarget("model");btnSymbolRead.onclick=()=>setReadTarget("symbol");btnManualMode.onclick=()=>setRegisterMode("manual");btnAutoMode.onclick=()=>setRegisterMode("auto");if(typeof btnNewDelivery!=='undefined')btnNewDelivery.onclick=createNewDelivery;if(typeof btnChecklistMode!=='undefined')btnChecklistMode.onclick=toggleChecklistMode;
+window.addEventListener("DOMContentLoaded",()=>{loadRules();btnFold.onclick=toggleControls;btnModelRead.onclick=()=>setReadTarget("model");btnSymbolRead.onclick=()=>setReadTarget("symbol");btnManualMode.onclick=()=>setRegisterMode("manual");btnAutoMode.onclick=()=>setRegisterMode("auto");if(typeof btnNewDelivery!=='undefined')btnNewDelivery.onclick=createNewDelivery;if(typeof btnViewBig!=='undefined')btnViewBig.onclick=()=>setChecklistMode('expanded');if(typeof btnViewSmall!=='undefined')btnViewSmall.onclick=()=>setChecklistMode('compact');if(typeof btnChecklistMode!=='undefined')btnChecklistMode.onclick=toggleChecklistMode;
 btnStart.onclick=startAuto;btnAdd.onclick=addCurrent;btnLight.onclick=toggleLight;btnRead.onclick=readOnce;btnStop.onclick=stopAll;btnExport.onclick=exportCsv;csvInput.onchange=loadCsv;btnHelp.onclick=()=>{drawer.style.display="block";renderHelp();showTab("list")};btnClose.onclick=()=>drawer.style.display="none";document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));renderChecklist();renderReviewList();});
 function setStatus(s){status.textContent=s}
+
+function setChecklistMode(mode){
+  checklistViewMode=mode;
+  if(typeof btnViewBig!=="undefined")btnViewBig.classList.toggle("active",mode==="expanded");
+  if(typeof btnViewSmall!=="undefined")btnViewSmall.classList.toggle("active",mode==="compact");
+  renderChecklist();
+}
+function v359RuleCsvText(){
+  return "照会記号,器具種別,色\n"+rules.map(r=>[r.key,r.name,r.color].map(v=>String(v).replaceAll('"','""')).map(v=>`"${v}"`).join(",")).join("\n");
+}
+function v359LoadRuleCsvText(){
+  let el=document.getElementById("ruleCsvText");
+  if(el)el.value=v359RuleCsvText();
+}
+function v359ParseCsvLine(line){
+  let out=[],cur="",q=false;
+  for(let i=0;i<line.length;i++){
+    let ch=line[i],nx=line[i+1];
+    if(ch=='"'&&q&&nx=='"'){cur+='"';i++}
+    else if(ch=='"')q=!q;
+    else if(ch==","&&!q){out.push(cur);cur=""}
+    else cur+=ch;
+  }
+  out.push(cur);
+  return out;
+}
+function v359ApplyRuleCsv(){
+  let el=document.getElementById("ruleCsvText");
+  if(!el)return;
+  let lines=el.value.replace(/\r/g,"").split("\n").filter(x=>x.trim());
+  if(lines.length<2){alert("CSVデータがありません");return}
+  let body=lines.slice(1);
+  let next=[];
+  body.forEach(line=>{
+    let c=v359ParseCsvLine(line);
+    if(c[0]&&c[1])next.push({key:c[0].trim(),name:c[1].trim(),color:(c[2]||"#333333").trim()||"#333333"});
+  });
+  if(!next.length){alert("有効なルールがありません");return}
+  rules=next;
+  saveRules();
+  v359LoadRuleCsvText();
+  alert("ルールCSVを更新しました");
+}
+function v359DownloadRuleCsv(){
+  let blob=new Blob(["\uFEFF"+v359RuleCsvText()],{type:"text/csv;charset=utf-8;"});
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="ルール.csv";
+  a.click();
+}
+function v356RuleClass(color){
+  let c=String(color||"").toLowerCase();
+  if(c==="#fff"||c==="#ffffff"||c==="white")return " lightRule";
+  let m=c.match(/^#([0-9a-f]{6})$/i);
+  if(m){
+    let r=parseInt(m[1].slice(0,2),16),g=parseInt(m[1].slice(2,4),16),b=parseInt(m[1].slice(4,6),16);
+    let y=(r*299+g*587+b*114)/1000;
+    if(y>180)return " lightRule";
+  }
+  return "";
+}
+
 
 function toggleChecklistMode(){
   checklistViewMode = checklistViewMode==="expanded" ? "compact" : "expanded";
@@ -1251,7 +1463,7 @@ if(typeof deliveries!=="undefined"&&deliveries.length===0&&checklist.length>0){
   deliveryOpen[id]=true;
   checklist.forEach(x=>{if(!x.deliveryId)x.deliveryId=id});
 }
-let modeClass=checklistViewMode==="compact"?"v357-compact":"v357-expanded";
+let modeClass=checklistViewMode==="compact"?"v359-compact":"v359-expanded";
 let h=`<div class="${modeClass}">`;
 if(typeof deliveries!=="undefined"&&deliveries.length){
   deliveries.forEach(del=>{
@@ -1263,18 +1475,22 @@ if(typeof deliveries!=="undefined"&&deliveries.length){
     arr.forEach(x=>{
       let c=categoryFor(v355BaseSymbol(x.symbol),x.type);
       let idx=checklist.indexOf(x);
-      h+=`<div class="v356-card"><div class="v356-top"><div class="v356-model">${esc(x.model)}</div><div class="v356-symbol" style="color:${c.color}">${esc(x.symbol)}</div><div class="v356-qtymini" style="display:none">${x.qty}台</div></div><div class="v356-qtyline"><button class="qbtn minus" data-i="${idx}" data-d="-10">－10</button><button class="qbtn minus" data-i="${idx}" data-d="-1">－</button><div class="v356-qty">${x.qty}台</div><button class="qbtn plus" data-i="${idx}" data-d="1">＋</button><button class="qbtn plus" data-i="${idx}" data-d="10">＋10</button><button class="v356-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v356-delete" data-del="${idx}">削除</button></div></div>`;
+      let symColor=v356RuleClass(c.color)?'#111':c.color;
+      h+=`<div class="v356-card"><div class="v356-top"><div class="v356-model">${esc(x.model)}</div><div class="v356-symbol" style="color:${symColor}">${esc(x.symbol)}</div></div><div class="v356-qtyline"><button class="qbtn minus" data-i="${idx}" data-d="-10">－10</button><button class="qbtn minus" data-i="${idx}" data-d="-1">－</button><div class="v356-qty">${x.qty}台</div><button class="qbtn plus" data-i="${idx}" data-d="1">＋</button><button class="qbtn plus" data-i="${idx}" data-d="10">＋10</button><button class="v356-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v356-delete" data-del="${idx}">削除</button></div></div>`;
     });
     h+=`</div></div>`;
   });
 }
 h+=`</div>`;
 checkList.innerHTML=h;
+if(typeof btnViewBig!=="undefined")btnViewBig.classList.toggle("active",checklistViewMode==="expanded");
+if(typeof btnViewSmall!=="undefined")btnViewSmall.classList.toggle("active",checklistViewMode==="compact");
 checkList.querySelectorAll("[data-delivery]").forEach(b=>b.onclick=()=>toggleDelivery(b.dataset.delivery));
 checkList.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{let i=+b.dataset.i;if(checklist[i].locked)return;checklist[i].qty=Math.max(0,checklist[i].qty+Number(b.dataset.d));renderChecklist()});
 checkList.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{let i=+b.dataset.l;checklist[i].locked=!checklist[i].locked;renderChecklist()});
 checkList.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>(typeof v410DeleteItem==='function'?v410DeleteItem:deleteChecklistItem)(+b.dataset.del));
 }
+
 
 
 
