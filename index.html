@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCR照会 V3.5.11</title>
+<title>OCR照会 V3.5.12</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -1234,129 +1234,180 @@ input[type=file]{display:none}
 }
 
 
-/* V3.5.11 checklist overlap fix */
-.v3510-expanded .v356-qtyline,
-.v3511-expanded .v356-qtyline{
-  display:grid!important;
-  grid-template-columns:minmax(52px,1fr) minmax(42px,.8fr) minmax(50px,.9fr) minmax(42px,.8fr) minmax(52px,1fr) minmax(46px,.8fr) minmax(52px,.9fr)!important;
-  gap:4px!important;
-  align-items:center!important;
-  width:100%!important;
+/* V3.5.12 stable checklist layout */
+.v359-viewBtn,
+.v359-viewBtn.big,
+.v359-viewBtn.small{
+  color:#fff!important;
+  text-shadow:none!important;
 }
-.v3510-expanded .v356-qtyline button,
-.v3511-expanded .v356-qtyline button{
-  min-width:0!important;
-  width:100%!important;
-  min-height:46px!important;
-  font-size:14px!important;
-  padding:5px 1px!important;
+.v359-viewBtn.big{background:#b91c1c!important}
+.v359-viewBtn.small{background:#1d4ed8!important}
+.v359-viewBtn.active{
+  outline:3px solid #fff!important;
+  box-shadow:0 0 0 2px #111 inset!important;
+}
+.v3512-expanded .v3512-card{
+  background:#fff6ee;
+  color:#111;
+  border-top:1px solid #c49a7b;
+  padding:10px;
+}
+.v3512-expanded .v3512-main{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(95px,130px);
+  gap:8px;
+  align-items:start;
+}
+.v3512-expanded .v3512-model{
+  font-size:24px;
+  line-height:1.15;
+  font-weight:1000;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+.v3512-expanded .v3512-symbol{
+  font-size:30px;
+  line-height:1.05;
+  font-weight:1000;
+  text-align:right;
+  white-space:normal;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+.v3512-expanded .v3512-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr 62px 1fr 1fr 58px 66px;
+  gap:5px;
+  align-items:center;
+  margin-top:8px;
+}
+.v3512-expanded .v3512-actions button{
+  min-height:48px!important;
+  font-size:15px!important;
+  padding:5px 2px!important;
   border-radius:8px!important;
-  white-space:nowrap!important;
-  overflow:hidden!important;
-}
-.v3510-expanded .v356-qty,
-.v3511-expanded .v356-qty{
   min-width:0!important;
-  width:100%!important;
-  min-height:46px!important;
-  font-size:16px!important;
-  padding:4px 1px!important;
-  white-space:nowrap!important;
 }
-.v3510-compact .v356-card,
-.v3511-compact .v356-card{
-  padding:5px 6px!important;
-  overflow:hidden!important;
+.v3512-expanded .v3512-qty{
+  min-height:48px;
+  font-size:18px;
+  font-weight:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border:1px solid #8a5a3f;
+  border-radius:8px;
+  color:#5b3423;
+  white-space:nowrap;
 }
-.v3510-compact .v356-top,
-.v3511-compact .v356-top{
-  display:grid!important;
-  grid-template-columns:minmax(0,1.6fr) minmax(64px,.8fr) 42px 34px 28px 28px 34px 42px 48px 8px!important;
-  gap:3px!important;
-  align-items:center!important;
-  width:100%!important;
+.v3512-compact .v3512-card{
+  background:#fff6ee;
+  color:#111;
+  border-top:1px solid #c49a7b;
+  padding:5px 6px;
 }
-.v3510-compact .v356-model,
-.v3511-compact .v356-model{
+.v3512-compact .v3512-main{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(68px,96px) 50px;
+  gap:5px;
+  align-items:center;
+}
+.v3512-compact .v3512-model{
+  font-size:12px;
+  line-height:1.08;
+  font-weight:1000;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  max-height:2.25em;
+  overflow:hidden;
+}
+.v3512-compact .v3512-symbol{
+  font-size:18px;
+  line-height:1.05;
+  font-weight:1000;
+  text-align:right;
+  white-space:normal;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+.v3512-compact .v3512-qtymini{
+  min-height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border:1px solid #8a5a3f;
+  border-radius:7px;
+  color:#5b3423;
+  font-size:13px;
+  font-weight:1000;
+  white-space:nowrap;
+}
+.v3512-compact .v3512-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr 50px 1fr 1fr 44px 52px;
+  gap:3px;
+  align-items:center;
+  margin-top:4px;
+}
+.v3512-compact .v3512-actions button{
+  min-height:34px!important;
   font-size:11px!important;
-  line-height:1.05!important;
-  white-space:normal!important;
-  overflow:visible!important;
-  text-overflow:clip!important;
-  word-break:break-word!important;
-  overflow-wrap:anywhere!important;
-  max-height:2.25em!important;
-}
-.v3510-compact .v356-symbol,
-.v3511-compact .v356-symbol{
-  font-size:14px!important;
-  line-height:1!important;
-  white-space:nowrap!important;
-  overflow:visible!important;
-  text-overflow:clip!important;
-  text-align:right!important;
-}
-.v3510-compact .v356-qtymini,
-.v3511-compact .v356-qtymini{
-  min-height:30px!important;
-  font-size:11px!important;
-  padding:1px!important;
-}
-.v3510-compact .v356-mini-btn,
-.v3511-compact .v356-mini-btn{
-  min-height:30px!important;
-  font-size:10px!important;
-  padding:1px!important;
+  padding:2px 1px!important;
+  border-radius:6px!important;
   min-width:0!important;
 }
-.v3510-compact .v356-mini-lock,
-.v3510-compact .v356-mini-delete,
-.v3511-compact .v356-mini-lock,
-.v3511-compact .v356-mini-delete{
-  min-height:30px!important;
-  font-size:10px!important;
-  padding:1px!important;
-  min-width:0!important;
+.v3512-compact .v3512-actions .v3512-qty{
+  display:none;
 }
-.v3511-spacer{
-  display:block;
+.v3512-lock{
+  background:#fff;
+  color:#111;
+  border:1px solid #8a5a3f;
+}
+.v3512-lock.locked{
+  color:#ffd400!important;
+  background:#5b3423!important;
+}
+.v3512-delete{
+  background:#9b3f34;
+  color:#fff;
+  border:1px solid #6b241d;
+}
+.ruleBox.lightRule{
+  color:#111!important;
+  border-color:#111!important;
+  background:#e5e7eb!important;
+}
+.ruleBox.lightRule .ruleKey,
+.ruleBox.lightRule .ruleName{
+  color:#111!important;
 }
 @media(max-width:430px){
-  .v3510-expanded .v356-qtyline,
-  .v3511-expanded .v356-qtyline{
-    grid-template-columns:minmax(48px,1fr) minmax(36px,.75fr) minmax(44px,.85fr) minmax(36px,.75fr) minmax(48px,1fr) minmax(40px,.75fr) minmax(48px,.85fr)!important;
-    gap:3px!important;
+  .v3512-expanded .v3512-model{font-size:22px}
+  .v3512-expanded .v3512-symbol{font-size:28px}
+  .v3512-expanded .v3512-actions{
+    grid-template-columns:52px 42px 50px 42px 52px 46px 54px;
+    gap:4px;
   }
-  .v3510-expanded .v356-qtyline button,
-  .v3511-expanded .v356-qtyline button{
-    font-size:12px!important;
-    min-height:44px!important;
+  .v3512-expanded .v3512-actions button{font-size:13px!important}
+  .v3512-expanded .v3512-qty{font-size:15px}
+  .v3512-compact .v3512-actions{
+    grid-template-columns:48px 36px 44px 36px 48px 40px 48px;
+    gap:3px;
   }
-  .v3510-expanded .v356-qty,
-  .v3511-expanded .v356-qty{
-    font-size:14px!important;
-    min-height:44px!important;
-  }
-  .v3510-compact .v356-top,
-  .v3511-compact .v356-top{
-    grid-template-columns:minmax(0,1.5fr) 56px 38px 30px 24px 24px 30px 36px 42px 6px!important;
-    gap:2px!important;
-  }
-  .v3510-compact .v356-model,
-  .v3511-compact .v356-model{
-    font-size:10.5px!important;
-  }
-  .v3510-compact .v356-symbol,
-  .v3511-compact .v356-symbol{
-    font-size:13px!important;
-  }
+  .v3512-compact .v3512-actions button{font-size:10px!important}
+  .v3512-compact .v3512-model{font-size:11px}
+  .v3512-compact .v3512-symbol{font-size:16px}
 }
 
 canvas{display:none}
 </style>
 </head>
 <body>
-<header>OCR照会 V3.5.11<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
+<header>OCR照会 V3.5.12<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
 <div class="wrap">
 <section class="camera"><video id="video" playsinline muted></video><div class="crossH"></div><div class="crossV"></div><div class="guide">型番・照会記号を十字の中心に合わせてください</div></section>
 <section class="result resultAlways waitResult" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:#333333"><div class="ruleKey">黒</div><div class="ruleName">その他</div></div></section>
@@ -1749,7 +1800,7 @@ if(typeof deliveries!=="undefined"&&deliveries.length===0&&checklist.length>0){
   deliveryOpen[id]=true;
   checklist.forEach(x=>{if(!x.deliveryId)x.deliveryId=id});
 }
-let modeClass=checklistViewMode==="compact"?"v3511-compact":"v3511-expanded";
+let modeClass=checklistViewMode==="compact"?"v3512-compact":"v3512-expanded";
 let h=`<div class="${modeClass}">`;
 if(typeof deliveries!=="undefined"&&deliveries.length){
   deliveries.forEach(del=>{
@@ -1761,8 +1812,8 @@ if(typeof deliveries!=="undefined"&&deliveries.length){
     arr.forEach(x=>{
       let c=categoryFor(v355BaseSymbol(x.symbol),x.type);
       let idx=checklist.indexOf(x);
-      let symColor=v356RuleClass(c.color)?'#111':c.color;
-      h+=`<div class="v356-card"><div class="v356-top"><div class="v356-model">${esc(x.model)}</div><div class="v356-symbol" style="color:${symColor}">${esc(x.symbol)}</div><div class="v356-qtymini">${x.qty}台</div><button class="qbtn minus v356-mini-btn" data-i="${idx}" data-d="-10">-10</button><button class="qbtn minus v356-mini-btn" data-i="${idx}" data-d="-1">-</button><button class="qbtn plus v356-mini-btn" data-i="${idx}" data-d="1">+</button><button class="qbtn plus v356-mini-btn" data-i="${idx}" data-d="10">+10</button><button class="v356-mini-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v356-mini-delete" data-del="${idx}">削除</button><span class="v3511-spacer"></span></div><div class="v356-qtyline"><button class="qbtn minus" data-i="${idx}" data-d="-10">－10</button><button class="qbtn minus" data-i="${idx}" data-d="-1">－</button><div class="v356-qty">${x.qty}台</div><button class="qbtn plus" data-i="${idx}" data-d="1">＋</button><button class="qbtn plus" data-i="${idx}" data-d="10">＋10</button><button class="v356-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v356-delete" data-del="${idx}">削除</button></div></div>`;
+      let symColor=(typeof v356RuleClass==="function"&&v356RuleClass(c.color))?'#111':c.color;
+      h+=`<div class="v3512-card"><div class="v3512-main"><div class="v3512-model">${esc(x.model)}</div><div class="v3512-symbol" style="color:${symColor}">${esc(x.symbol)}</div><div class="v3512-qtymini">${x.qty}台</div></div><div class="v3512-actions"><button class="qbtn minus" data-i="${idx}" data-d="-10">－10</button><button class="qbtn minus" data-i="${idx}" data-d="-1">－</button><div class="v3512-qty">${x.qty}台</div><button class="qbtn plus" data-i="${idx}" data-d="1">＋</button><button class="qbtn plus" data-i="${idx}" data-d="10">＋10</button><button class="v3512-lock ${x.locked?"locked":""}" data-l="${idx}">🔒</button><button class="v3512-delete" data-del="${idx}">削除</button></div></div>`;
     });
     h+=`</div></div>`;
   });
@@ -1776,6 +1827,7 @@ checkList.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{let i=+b.datase
 checkList.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{let i=+b.dataset.l;checklist[i].locked=!checklist[i].locked;renderChecklist()});
 checkList.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>(typeof v410DeleteItem==='function'?v410DeleteItem:deleteChecklistItem)(+b.dataset.del));
 }
+
 
 
 
