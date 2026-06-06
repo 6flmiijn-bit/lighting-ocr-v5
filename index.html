@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCR照会 V3.5.4</title>
+<title>OCR照会 V3.6 試作</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -587,14 +587,79 @@ input[type=file]{display:none}
   margin-left:4px;
 }
 
+
+/* V3.6 trial: result colors + bigger qty buttons */
+.result.okResult,
+.v342-result-card.okResult{
+  background:#d9fbe3!important;
+  border-color:#168a2f!important;
+  color:#063b16!important;
+}
+.result.ngResult,
+.v342-result-card.ngResult{
+  background:#ffe0dc!important;
+  border-color:#b91c1c!important;
+  color:#4a0c0c!important;
+}
+.result.waitResult{
+  background:#f3f4f6!important;
+  border-color:#9ca3af!important;
+  color:#111827!important;
+}
+.result.readingResult{
+  background:#fff3bf!important;
+  border-color:#ca8a04!important;
+  color:#3f2f00!important;
+}
+.v36-statusText{
+  font-size:20px;
+  font-weight:1000;
+  margin-bottom:6px;
+}
+.v36-plusMsg{
+  display:inline-block;
+  background:#168a2f;
+  color:#fff;
+  border-radius:999px;
+  padding:3px 8px;
+  font-weight:1000;
+  margin-left:5px;
+}
+.v410-row{
+  grid-template-columns:1fr 52px 52px 152px 70px!important;
+  min-height:54px!important;
+}
+.v410-qtybtns{
+  gap:5px!important;
+}
+.v410-qtybtns .qbtn{
+  font-size:18px!important;
+  padding:13px 0!important;
+  border-radius:10px!important;
+  min-height:48px!important;
+}
+.v410-qty{
+  font-size:20px!important;
+}
+.v410-actions button{
+  font-size:13px!important;
+  padding:12px 2px!important;
+  border-radius:9px!important;
+  min-height:48px!important;
+}
+@media(max-width:430px){
+  .v410-row{grid-template-columns:1fr 46px 48px 142px 64px!important}
+  .v410-qtybtns .qbtn{font-size:17px!important;min-height:48px!important}
+}
+
 canvas{display:none}
 </style>
 </head>
 <body>
-<header>OCR照会 V3.5.4<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
+<header>OCR照会 V3.6 試作<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
 <div class="wrap">
 <section class="camera"><video id="video" playsinline muted></video><div class="crossH"></div><div class="crossV"></div><div class="guide">型番・照会記号を十字の中心に合わせてください</div></section>
-<section class="result resultAlways" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:white"><div class="ruleKey">白</div><div class="ruleName">その他</div></div></section>
+<section class="result resultAlways waitResult" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:white"><div class="ruleKey">白</div><div class="ruleName">その他</div></div></section>
 <button id="btnFold" class="foldBtn">▲ 操作部を隠す</button>
 <div id="controlBlock" class="controlBlock">
 <div class="readmode"><button id="btnModelRead" class="modeBtn active">型番読取</button><button id="btnSymbolRead" class="modeBtn">照会記号読取</button></div>
@@ -617,13 +682,22 @@ canvas{display:none}
 <canvas id="work"></canvas>
 <script>
 const DATA_INIT=[{"model": "NNFB84665", "symbol": "E1a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84695", "symbol": "E1a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87609", "symbol": "E2a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87649", "symbol": "E2a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84005", "symbol": "E3a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84045", "symbol": "E3a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84715", "symbol": "E4a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNLG01509", "symbol": "E5a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB84105", "symbol": "E6a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87009", "symbol": "E7a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87049", "symbol": "E7a黒", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87109", "symbol": "E8a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "NNFB87919", "symbol": "E9a", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40356C LE1", "symbol": "X1L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40352C LE1", "symbol": "X2", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40316C LE1", "symbol": "X3L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40312C LE1", "symbol": "X4", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C", "symbol": "X5Lu", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C", "symbol": "X6u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C LE1", "symbol": "X7u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42337C LE1", "symbol": "X8u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW40315 LE1", "symbol": "X9L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42327C LE1", "symbol": "X10u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40356C LE1", "symbol": "Y1L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40366C LE1", "symbol": "Y2L", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40352C LE1", "symbol": "Y3", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40362C LE1", "symbol": "Y4", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40312C LE1", "symbol": "Y5", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA40322C LE1", "symbol": "Y6", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42317C LE1", "symbol": "Y7u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FW42337C LE1", "symbol": "Y8u", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FA01520J", "symbol": "Y9", "type": "", "aperture": "", "watt": "", "currentA": ""}, {"model": "FSK90910K", "symbol": "自己点検リモコン", "type": "", "aperture": "", "watt": "", "currentA": ""}];
-let data=DATA_INIT.slice(),checklist=[],current=null,stream=null,worker=null,timer=null,busy=false,torchOn=false,isStopped=false,editIdx=null,readTarget="model",registerMode="manual",lastAutoKey="",lastAutoTime=0,deliveries=[],activeDeliveryId=null,deliveryOpen={},folderOpen={},controlsCollapsed=false;
+let data=DATA_INIT.slice(),checklist=[],current=null,stream=null,worker=null,timer=null,busy=false,torchOn=false,isStopped=false,editIdx=null,readTarget="model",registerMode="manual",lastAutoKey="",lastAutoTime=0,lastQtyAddKey="",lastQtyAddTime=0,deliveries=[],activeDeliveryId=null,deliveryOpen={},folderOpen={},controlsCollapsed=false;
 let rules=[{key:"E",name:"非常照明",color:"#35d66b"},{key:"Y",name:"通路誘導灯",color:"#1d7cff"},{key:"X",name:"避難口誘導灯",color:"#ff3030"},{key:"U",name:"防湿・防雨",color:"#43cde6"},{key:"LS",name:"誘導標識",color:"#ffffff"},{key:"Z",name:"階段通路誘導灯",color:"#ffd31a"},{key:"中継",name:"信号装置・中継器",color:"#a3e635"},{key:"埋",name:"埋込",color:"#9747ff"},{key:"直",name:"直付",color:"#ff8200"},{key:"壁",name:"壁付",color:"#b08cff"},{key:"天",name:"天井",color:"#999999"},{key:"低",name:"低天井",color:"#7dd3fc"},{key:"中",name:"中天井",color:"#60a5fa"},{key:"高",name:"高天井",color:"#2563eb"},{key:"BH",name:"B級BH",color:"#f97316"},{key:"BL",name:"B級BL",color:"#fb923c"},{key:"C",name:"C級",color:"#facc15"},{key:"リ",name:"リモコン",color:"#ff6aa8"},{key:"器",name:"中継器",color:"#00d7c7"},{key:"他",name:"その他",color:"#ffffff"}];
 const palette=["#ff3030","#1d7cff","#ffd31a","#ff8200","#35d66b","#9747ff","#43cde6","#7a3f18","#ffffff","#999999","#b08cff","#f97316","#fb923c","#a3e635","#60a5fa","#2563eb","#facc15","#ff6aa8","#00d7c7","#111111"];
 const esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 window.addEventListener("DOMContentLoaded",()=>{loadRules();btnFold.onclick=toggleControls;btnModelRead.onclick=()=>setReadTarget("model");btnSymbolRead.onclick=()=>setReadTarget("symbol");btnManualMode.onclick=()=>setRegisterMode("manual");btnAutoMode.onclick=()=>setRegisterMode("auto");if(typeof btnNewDelivery!=='undefined')btnNewDelivery.onclick=createNewDelivery;
 btnStart.onclick=startAuto;btnAdd.onclick=addCurrent;btnLight.onclick=toggleLight;btnRead.onclick=readOnce;btnStop.onclick=stopAll;btnExport.onclick=exportCsv;csvInput.onchange=loadCsv;btnHelp.onclick=()=>{drawer.style.display="block";renderHelp();showTab("list")};btnClose.onclick=()=>drawer.style.display="none";document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));renderChecklist();renderReviewList();});
 function setStatus(s){status.textContent=s}
+
+function v36SetResultState(kind){
+  result.classList.remove("okResult","ngResult","waitResult","readingResult");
+  result.classList.add(kind);
+}
+function v36KeyForItem(model,symbol){
+  return normalize(model)+"|"+normSymbol(symbol);
+}
+
 
 function v354Key(s){
   return String(s||"").toUpperCase()
@@ -793,12 +867,31 @@ function matchModel(text){
 }
 function matchSymbol(text){let cs=extractSymbolCandidates(text);for(const c of cs){let nc=normSymbol(c);let hit=data.find(r=>normSymbol(r.symbol)===nc);if(hit)return{hit,cand:c,score:1}}for(const c of cs){let nc=normSymbol(c);let hit=data.find(r=>normSymbol(r.symbol).startsWith(nc)||nc.startsWith(normSymbol(r.symbol)));if(hit)return{hit,cand:c,score:.86}}return{hit:null,cand:cs[0]||safeOcrText(text),score:0}}
 function isDuplicateModel(model){let k=normalize(model);return data.filter(r=>normalize(r.model)===k).length>1}
-function addCurrentCore(silent=false){if(!current){if(!silent)alert("先に読取してください");return false}ensureDelivery();let d=new Date(),date=d.toISOString().slice(0,10).replaceAll("-","/"),time=d.toTimeString().slice(0,5),key=current.missing?current.model:current.symbol;let f=checklist.find(x=>x.deliveryId===activeDeliveryId&&x.symbol===key&&x.model===current.model);if(f&&!f.locked)f.qty+=1;else checklist.unshift({deliveryId:activeDeliveryId,date,time,symbol:key,model:current.model,type:current.type,qty:1,locked:false,missing:current.missing});renderChecklist();return true}
-function tryAutoRegister(hit,score){if(registerMode!=="auto"||readTarget!=="model")return;if(!hit||score<0.80){setStatus("自動停止：一致率不足");return}if(isDuplicateModel(hit.model)){setStatus("自動停止：重複型番のため手動確認");return}let key=hit.model+"|"+hit.symbol,now=Date.now();if(lastAutoKey===key&&now-lastAutoTime<2000)return;lastAutoKey=key;lastAutoTime=now;if(addCurrentCore(true))setStatus("自動登録完了："+hit.symbol)}
+function addCurrentCore(silent=false){
+if(!current){if(!silent)alert("先に読取してください");return false}
+ensureDelivery();
+let d=new Date(),date=d.toISOString().slice(0,10).replaceAll("-","/"),time=d.toTimeString().slice(0,5),key=current.missing?current.model:current.symbol;
+let itemKey=v36KeyForItem(current.model,key),now=Date.now();
+if(silent && lastQtyAddKey===itemKey && now-lastQtyAddTime<3000){
+  setStatus("連続読取防止：3秒以内は数量加算しません");
+  return false;
+}
+lastQtyAddKey=itemKey;lastQtyAddTime=now;
+let f=checklist.find(x=>x.deliveryId===activeDeliveryId&&v36KeyForItem(x.model,x.symbol)===itemKey);
+if(f&&!f.locked){
+  f.qty+=1;
+  setStatus("数量＋1："+current.model+" / "+key);
+}else{
+  checklist.unshift({deliveryId:activeDeliveryId,date,time,symbol:key,model:current.model,type:current.type,qty:1,locked:false,missing:current.missing});
+  setStatus("チェックリスト登録："+current.model+" / "+key);
+}
+renderChecklist();
+return true}
+function tryAutoRegister(hit,score){if(registerMode!=="auto"||readTarget!=="model")return;if(!hit||score<0.80){setStatus("自動停止：一致率不足");return}/* V3.6: 重複型番も数量加算運用のため停止しない */let key=hit.model+"|"+hit.symbol,now=Date.now();if(lastAutoKey===key&&now-lastAutoTime<2000)return;lastAutoKey=key;lastAutoTime=now;if(addCurrentCore(true))setStatus("自動登録完了："+hit.symbol)}
 async function ensureWorker(){if(worker)return worker;setStatus("OCR準備中...");worker=await Tesseract.createWorker("eng",1);await worker.setParameters({tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ",tessedit_pageseg_mode:"6"});setStatus("OCR準備完了");return worker}
 async function startAuto(){try{isStopped=false;await startCamera();if(timer)clearInterval(timer);timer=setInterval(readOnce,1200);await readOnce()}catch(e){setStatus("カメラエラー："+e.message);alert("カメラ起動失敗："+e.message)}}
 async function startCamera(){if(stream)return;stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});video.srcObject=stream;await video.play();await ensureWorker();setStatus("自動読取中")}
-function stopAll(){isStopped=true;if(timer){clearInterval(timer);timer=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}video.srcObject=null;busy=false;setStatus("停止しました")}
+function stopAll(){isStopped=true;if(timer){clearInterval(timer);timer=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}video.srcObject=null;busy=false;v36SetResultState("waitResult");setStatus("停止しました")}
 async function toggleLight(){try{if(!stream)return alert("先にカメラ起動してください");let tr=stream.getVideoTracks()[0],cap=tr.getCapabilities?tr.getCapabilities():null;if(!cap||!cap.torch)return alert("このスマホ/ブラウザはライト制御に対応していません");torchOn=!torchOn;await tr.applyConstraints({advanced:[{torch:torchOn}]});setStatus(torchOn?"ライトON":"ライトOFF")}catch(e){alert("ライト切替エラー："+e.message)}}
 function crop(){
 if(!video.videoWidth)return null;
@@ -813,20 +906,28 @@ c.height=Math.max(140,Math.floor(sh*scale));
 let ctx=c.getContext("2d",{willReadFrequently:true});
 ctx.drawImage(video,sx,sy,sw,sh,0,0,c.width,c.height);
 return c}
-async function readOnce(){if(isStopped)return;if(!stream)return alert("先にカメラ起動してください");if(busy)return;busy=true;setStatus("読取中...");try{let c=crop();if(!c){setStatus("カメラ準備中");return}let w=await ensureWorker(),r=await w.recognize(c);if(isStopped)return;let text=r.data.text||"";rawBox.textContent="読取文字：\\n"+text;let m=readTarget==="symbol"?matchSymbol(text):matchModel(text);if(m.hit){if(readTarget==="symbol")showSymbolHit(m.hit,m.score,m.cand);else{showHit(m.hit,m.score,m.cand);tryAutoRegister(m.hit,m.score)}}else showMissing(m.cand,text)}catch(e){setStatus("読取エラー："+e.message)}finally{busy=false}}
+async function readOnce(){if(isStopped)return;if(!stream)return alert("先にカメラ起動してください");if(busy)return;busy=true;v36SetResultState("readingResult");setStatus("読取中...");try{let c=crop();if(!c){setStatus("カメラ準備中");return}let w=await ensureWorker(),r=await w.recognize(c);if(isStopped)return;let text=r.data.text||"";rawBox.textContent="読取文字：\\n"+text;let m=readTarget==="symbol"?matchSymbol(text):matchModel(text);if(m.hit){if(readTarget==="symbol")showSymbolHit(m.hit,m.score,m.cand);else{showHit(m.hit,m.score,m.cand);tryAutoRegister(m.hit,m.score)}}else showMissing(m.cand,text)}catch(e){setStatus("読取エラー："+e.message)}finally{busy=false}}
 function showHit(hit,score,read){
 let cat=categoryFor(hit.symbol,hit.type);
 current={model:hit.model,symbol:hit.symbol,type:hit.type,missing:false};
 result.style.borderColor=cat.color;
-result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card"><div class="v342-title">✅ 照合一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol" style="color:${cat.color}">${esc(hit.symbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.model)} / ${isDuplicateModel(hit.model)?"⚠ 重複型番：手動確認 / ":""}<span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div></div></div><div class="ruleBox" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
+v36SetResultState("okResult");
+result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card okResult"><div class="v36-statusText">✅ 照合一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol" style="color:${cat.color}">${esc(hit.symbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.model)} / ${isDuplicateModel(hit.model)?"⚠ 重複型番：手動確認 / ":""}<span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div></div></div><div class="ruleBox" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
 setStatus(hit.model+" → "+hit.symbol)}
 function showSymbolHit(hit,score,read){
 let cat=categoryFor(hit.symbol,hit.type);
 current={model:hit.model,symbol:hit.symbol,type:hit.type,missing:false};
 result.style.borderColor=cat.color;
-result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card"><div class="v342-title">✅ 照会記号一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol" style="color:${cat.color}">${esc(hit.symbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.symbol)} / <span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div><div class="specBox"><div class="spec"><small>開口</small>${esc(hit.aperture||"未入力")}</div><div class="spec"><small>W数</small>${esc(hit.watt||"未入力")}</div><div class="spec"><small>電流</small>${esc(hit.currentA||"未入力")}</div><div class="spec"><small>型番</small>${esc(hit.model||"")}</div></div></div></div><div class="ruleBox" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
+v36SetResultState("okResult");
+result.innerHTML=`<div class="v342-read-wrap"><div class="v342-result-card okResult"><div class="v36-statusText">✅ 照会記号一致</div><div class="v342-line"><div class="v342-model">${esc(hit.model)}</div><div class="v342-symbol" style="color:${cat.color}">${esc(hit.symbol)}</div></div><div class="v342-sub">読取：${esc(read||hit.symbol)} / <span class="v35-conf">信頼度 ${Math.round(score*100)}%</span></div><div class="specBox"><div class="spec"><small>開口</small>${esc(hit.aperture||"未入力")}</div><div class="spec"><small>W数</small>${esc(hit.watt||"未入力")}</div><div class="spec"><small>電流</small>${esc(hit.currentA||"未入力")}</div><div class="spec"><small>型番</small>${esc(hit.model||"")}</div></div></div></div><div class="ruleBox" style="color:${cat.color}"><div class="ruleKey">${esc(cat.key)}</div><div class="ruleName">${esc(cat.name)}</div></div>`;
 setStatus("照会一致："+hit.symbol)}
-function showMissing(cand,raw){let shown=(cand&&cand!=="未読取")?String(cand).slice(0,24):safeOcrText(raw);current={model:shown,symbol:"未登録",type:"",missing:true};result.style.borderColor="#fff";result.innerHTML=`<div><div class="state">未登録</div><div class="readModel">${esc(shown)}</div><div class="meta">OCR読取文字を表示中<br>自動登録は停止します</div></div><div class="ruleBox" style="color:#fff"><div class="ruleKey">白</div><div class="ruleName">未登録</div></div>`;setStatus("自動停止：未登録")}
+function showMissing(cand,raw){
+let shown=(cand&&cand!=="未読取")?String(cand).slice(0,24):safeOcrText(raw);
+current={model:shown,symbol:"未登録",type:"",missing:true};
+result.style.borderColor="#b91c1c";
+v36SetResultState("ngResult");
+result.innerHTML=`<div><div class="state">❌ 未登録</div><div class="readModel">${esc(shown)}</div><div class="meta">OCR読取文字を表示中<br>自動登録は停止します</div></div><div class="ruleBox" style="color:#b91c1c"><div class="ruleKey">赤</div><div class="ruleName">未登録</div></div>`;
+setStatus("自動停止：未登録")}
 function addCurrent(){addCurrentCore(false)}
 function renderChecklist(){
 if(typeof deliveries!=="undefined"&&deliveries.length===0&&checklist.length>0){
