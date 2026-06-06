@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCR照会 V3.5.1</title>
+<title>OCR照会 V3.5.2</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -591,7 +591,7 @@ canvas{display:none}
 </style>
 </head>
 <body>
-<header>OCR照会 V3.5.1<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
+<header>OCR照会 V3.5.2<button id="btnHelp" class="helpBtn">ヘルプ</button></header>
 <div class="wrap">
 <section class="camera"><video id="video" playsinline muted></video><div class="crossH"></div><div class="crossV"></div><div class="guide">型番・照会記号を十字の中心に合わせてください</div></section>
 <section class="result resultAlways" id="result"><div><div class="state">待機中</div><div class="readModel">---</div><div class="meta">読取結果を表示します</div></div><div class="ruleBox" style="color:white"><div class="ruleKey">白</div><div class="ruleName">その他</div></div></section>
@@ -626,29 +626,24 @@ btnStart.onclick=startAuto;btnAdd.onclick=addCurrent;btnLight.onclick=toggleLigh
 function setStatus(s){status.textContent=s}
 
 function v35FixModel(s){
-  let x=String(s||"").toUpperCase();
+  let raw=String(s||"").toUpperCase();
 
-  // 全角・誤読補正
-  x=x.replace(/[Ｏ]/g,"O").replace(/[０]/g,"0").replace(/[１]/g,"1").replace(/[５]/g,"5");
-  x=x.replace(/LEI/g,"LE1").replace(/LFI/g,"LE1").replace(/1E1/g,"LE1").replace(/IE1/g,"LE1");
-  x=x.replace(/L\s*E\s*1/g,"LE1").replace(/LE\s*1/g,"LE1");
+  raw=raw.replace(/[Ｏ]/g,"O").replace(/[０]/g,"0").replace(/[１]/g,"1").replace(/[５]/g,"5");
 
-  // 区切りを全部消したキーを作る
-  let k=x.replace(/[^A-Z0-9]/g,"");
+  let compact=raw.replace(/[^A-Z0-9]/g,"");
+  compact=compact.replace(/LEI/g,"LE1").replace(/LFI/g,"LE1").replace(/1E1/g,"LE1").replace(/IE1/g,"LE1");
 
-  // FA の数字部だけ補正
-  k=k.replace(/FA([0-9OISB]{4,8})/g,function(m,n){
+  compact=compact.replace(/FA([0-9OISB]{4,8})/g,function(m,n){
     let d=n.replace(/O/g,"0").replace(/I/g,"1").replace(/S/g,"5").replace(/B/g,"8");
     return "FA"+d;
   });
 
-  // FA40356CLE1 / FA40356C1E1 / FA40356CLEI → FA40356C LE1
-  let m=k.match(/FA[0-9]{5,6}C(LE1|1E1|LEI|IE1)/);
-  if(m){
-    return k.replace(/(FA[0-9]{5,6}C)(LE1|1E1|LEI|IE1).*/,"$1 LE1");
+  let fa=compact.match(/FA[0-9]{5,6}C(LE1|1E1|LEI|IE1)/);
+  if(fa){
+    return compact.replace(/(FA[0-9]{5,6}C)(LE1|1E1|LEI|IE1).*/,"$1 LE1");
   }
 
-  return k.trim();
+  return raw.replace(/[　\s_.,:;|\/\\()[\]{}]+/g,"").replace(/[^A-Z0-9\-]/g,"").trim();
 }
 function v35Key(s){
   return v35FixModel(s).replace(/[^A-Z0-9]/g,"").toUpperCase();
@@ -735,19 +730,25 @@ function extractSymbolCandidates(text){let j=normSymbol(text),a=[];[/LS\\d{0,3}[
 function safeOcrText(raw){let c=readTarget==="symbol"?extractSymbolCandidates(raw):extractCandidates(raw);if(c.length)return c[0];return String(raw||"").split(/\\n/).map(x=>x.trim()).filter(Boolean).sort((a,b)=>b.length-a.length)[0]?.slice(0,32)||"読取文字なし"}
 function sim(a,b){a=normalize(a);b=normalize(b);let m=a.length,l=b.length;if(!m||!l)return 0;let d=Array.from({length:m+1},()=>Array(l+1).fill(0));for(let i=0;i<=m;i++)d[i][0]=i;for(let j=0;j<=l;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=l;j++){let c=a[i-1]===b[j-1]?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c)}return 1-d[m][l]/Math.max(m,l)}
 function matchModel(text){
-  let c=extractCandidates(text),j=v35Key(text);
+  let c=extractCandidates(text);
+  let j=normalize(text);
+  let jk=v35Key(text);
 
   for(const r of data){
-    let m=v35Key(r.model);
-    if(j.includes(m)||m.includes(j))return{hit:r,cand:r.model,score:1}
+    let m=normalize(r.model);
+    let mk=v35Key(r.model);
+    if(j.includes(m)||m.includes(j)||jk.includes(mk)||mk.includes(jk))return{hit:r,cand:r.model,score:1}
   }
 
   let best={hit:null,cand:c[0]||"",score:0};
 
   for(const r of data){
-    let m=v35Key(r.model);
+    let m=normalize(r.model);
+    let mk=v35Key(r.model);
     for(const x of c){
-      let s=sim(v35Key(x),m);
+      let s1=sim(normalize(x),m);
+      let s2=sim(v35Key(x),mk);
+      let s=Math.max(s1,s2);
       if(s>best.score)best={hit:r,cand:x,score:s}
     }
   }
@@ -821,7 +822,7 @@ checkList.innerHTML=h;
 checkList.querySelectorAll("[data-delivery]").forEach(b=>b.onclick=()=>toggleDelivery(b.dataset.delivery));
 checkList.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{let i=+b.dataset.i;if(checklist[i].locked)return;checklist[i].qty=Math.max(0,checklist[i].qty+Number(b.dataset.d));renderChecklist()});
 checkList.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{let i=+b.dataset.l;checklist[i].locked=!checklist[i].locked;renderChecklist()});
-checkList.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>v410DeleteItem(+b.dataset.del));
+checkList.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>(typeof v410DeleteItem==='function'?v410DeleteItem:deleteChecklistItem)(+b.dataset.del));
 }
 function renderReviewList(){dataCount.textContent=data.length+"件";let counts={};data.forEach(r=>{let k=normalize(r.model);counts[k]=(counts[k]||0)+1});reviewList.innerHTML='<div class="reviewHead"><div>型番</div><div>紹介記号</div><div>器具種別</div></div>'+data.map(r=>{let c=categoryFor(r.symbol,r.type),dup=counts[normalize(r.model)]>1;return `<div class="reviewRow ${dup?"dup":""}"><div class="reviewModel">${esc(r.model)}${dup?' <span class="dupMark">重複</span>':""}</div><div class="reviewSym" style="color:${c.color}">${esc(r.symbol)}</div><div class="reviewType">${esc(r.type||"")}</div></div>`}).join("")}
 function exportCsv(){

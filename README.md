@@ -1,23 +1,7 @@
-# OCR照会 V3.5.1
+# OCR照会 V3.5.2
 
-Vercel用の全部入りファイルです。
-
-## ファイル
-- index.html
-- package.json
-- vercel.json
-- sample_data.csv
-- README.md
-
-## Vercel
-Build Command:
-npm run build
-
-Output Directory:
-dist
-
-## 内容
-- V3.5 safe2ベース
-- CSV書き出し時、チェックリスト0件ならCSV作成せず自動削除
-- 1件以上ならCSV保存後に削除するか確認
-- Vite不要
+## 修正
+- NNFB84665など通常型番がチェックリスト登録されない問題を修正
+- FA40356C LE1の補正は維持
+- CSV 0件時はCSV作成せずチェックリスト削除
+- Vercel用全部入り
